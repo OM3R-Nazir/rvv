@@ -27,75 +27,31 @@ class BaseRVV:
             for k in range(self.VL):
                 v[k] = k
     
-    def _init_vv(self, vd, op1, op2):
-        vvd = self.vec(vd)
-        vop1 = self.vec(op1)
-        vop2 = self.vec(op2)
+    def _init_ops(self, vd, op1, op2, type, signed):
+        def initer(type):
+            if type == 'v': return self.vec
+            elif type == 'w': return self.vecw
+            elif type == 'x': return self.scalar
+            
+        if type(signed) == bool: signed = 'sss' if signed else 'uuu'    
+        
+        tvd = initer(type[0])(vd, signed[0])
+        top1 = initer(type[1])(op1, signed[1])
+        top2 = initer(type[2])(op2, signed[2])
         
         if self.debug:
-            print(f"vop1 v{op1:02}: ", vop1)
-            print(f"vop2 v{op2:02}: ", vop2)
+            if type[1] == 'x':
+                print(f"xop1    : ", top1)
+            else:
+                print(f"vop1 v{op1:02}: ", top1)
+            if type[2] == 'x':
+                print(f"xop2    : ", top1)
+            else:
+                print(f"vop2 v{op1:02}: ", top2)
         
-        return vvd, vop1, vop2
-    
-    def _init_vx(self, vd, op1, op2):
-        vvd = self.vec(vd)
-        vop1 = self.vec(op1)
-        xop2 = self.sca(op2)
+        return tvd, top1, top2
         
-        if self.debug:
-            print(f"vop1 v{op1:02}: ", vop1)
-            print(f"xop2    : ", xop2)
-        
-        return vvd, vop1, xop2
-    
-    def _init_w_vv(self, vd, op1, op2):
-        vvd = self.vecw(vd)
-        vop1 = self.vec(op1)
-        vop2 = self.vec(op2)
-        
-        if self.debug:
-            print(f"vop1 v{op1:02}: ", vop1)
-            print(f"xop2    : ", vop2)
-    
-        return vvd, vop1, vop2
-    
-    def _init_w_vx(self, vd, op1, op2):
-
-        vvd = self.vecw(vd)
-        vop1 = self.vec(op1)
-        xop2 = self.sca(op2)
-        
-        if self.debug:
-            print(f"vop1 v{op1:02}: ", vop1)
-            print(f"xop2    : ", xop2)
-    
-        return vvd, vop1, xop2
-    
-    def _init_w_wv(self, vd, op1, op2):
-        vvd = self.vecw(vd)
-        vop1 = self.vecw(op1)
-        vop2 = self.vec(op2)
-        
-        if self.debug:
-            print(f"vop1 v{op1:02}: ", vop1)
-            print(f"xop2    : ", vop2)
-    
-        return vvd, vop1, vop2
-    
-    def _init_w_wx(self, vd, op1, op2):
-
-        vvd = self.vecw(vd)
-        vop1 = self.vecw(op1)
-        xop2 = self.sca(op2)
-        
-        if self.debug:
-            print(f"vop1 v{op1:02}: ", vop1)
-            print(f"xop2    : ", xop2)
-    
-        return vvd, vop1, xop2
-        
-    def _debug_vec(self, vec, vec_num):
+    def _debug_vd(self, vec, vec_num):
         if self.debug:
             print(f"vd   v{vec_num:02}: ", vec)
     
@@ -111,30 +67,41 @@ class BaseRVV:
     def _zext(self, num):
         return self.WSEW.udtype(self.SEW.udtype(num)) 
     
-    def vec(self, vi):
+    def vec(self, vi, signed=False):
         
         if vi % self.LMUL != 0:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {self.LMUL}")
         
+        if type(signed) == str:
+            signed = True if signed == 's' else False
+        
         start = vi * self.VLENB
         end = vi * self.VLENB + self.VL * self.SEW.SEW // 8
         
-        return self.VRF[start:end].view(self.SEW.udtype)
+        viewtype = self.SEW.idtype if signed else self.SEW.udtype
+        
+        return self.VRF[start:end].view(viewtype)
     
-    def vecw(self, vi):
+    def vecw(self, vi, signed=False):
         LMUL = self.LMUL + 1
         SEW = self.SEW.get_higher_sew()
 
         if vi % LMUL != 0:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
         
+        if type(signed) == str:
+            signed = True if signed == 's' else False
+            
         start = vi * self.VLENB
         end = vi * self.VLENB + self.VL * SEW.SEW // 8
         
-        return self.VRF[start:end].view(SEW.udtype)
+        viewtype = SEW.idtype if signed else SEW.udtype
+        
+        return self.VRF[start:end].view(viewtype)
     
-    def sca(self, xi):
-        return self.SEW.udtype(xi)
+    def scalar(self, xi, signed=False):
+        viewtype = self.SEW.idtype if signed else self.SEW.udtype
+        return viewtype(xi)
     
     def vsetvli(self, AVL, SEW, LMUL) -> None:
         
