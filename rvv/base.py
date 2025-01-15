@@ -27,29 +27,42 @@ class BaseRVV:
             for k in range(self.VL):
                 v[k] = k
     
-    def _init_ops(self, vd, op1, op2, type, signed):
-        def initer(type):
-            if type == 'v': return self.vec
-            elif type == 'w': return self.vecw
-            elif type == 'x': return self.scalar
-            
-        if type(signed) == bool: signed = 'sss' if signed else 'uuu'    
+    def _initer(self, optype, op, signed):
+        if optype == 'v': return self.vec(op, signed)
+        elif optype == 'w': return self.vecw(op, signed)
+        elif optype == 'x': return self.scalar(op, signed)
         
-        tvd = initer(type[0])(vd, signed[0])
-        top1 = initer(type[1])(op1, signed[1])
-        top2 = initer(type[2])(op2, signed[2])
+    def _init_ops(self, vd, op1, op2, optypes, signed, masked):
+        
+        if type(signed) == bool: signed = 'sss' if signed else 'uuu'    
+            
+        tvd = self._initer(optypes[0], vd, signed[0])
+        top1 = self._initer(optypes[1], op1, signed[1])
+        top2 = self._initer(optypes[2], op2, signed[2])
+        
+        ops = [vd, op1, op2]
+        vector_ops = [ops[i] for i in range(3) if optypes[i] != 'x']
+        
+        if masked:
+            if 0 in vector_ops:
+                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
+            mask = self._get_mask()
+        else:
+            mask = np.ones(self.VL, dtype=np.bool_)
         
         if self.debug:
-            if type[1] == 'x':
+            if optypes[1] == 'x':
                 print(f"xop1    : ", top1)
             else:
                 print(f"vop1 v{op1:02}: ", top1)
-            if type[2] == 'x':
+            if optypes[2] == 'x':
                 print(f"xop2    : ", top1)
             else:
                 print(f"vop2 v{op1:02}: ", top2)
+            if masked:
+                print(f"mask    : ", mask.view(np.uint8))
         
-        return tvd, top1, top2
+        return tvd, top1, top2, mask
         
     def _debug_vd(self, vec, vec_num):
         if self.debug:
@@ -66,6 +79,14 @@ class BaseRVV:
     
     def _zext(self, num):
         return self.WSEW.udtype(self.SEW.udtype(num)) 
+    
+    def _get_mask(self):
+        v0 = self.VRF[:self.VLENB].view(np.uint8)
+        reverse_mask = v0 % 255 == 0
+        v0[reverse_mask] = v0[reverse_mask] - 255
+        mask = np.unpackbits(v0)[:self.VL].view(np.bool_)
+        return mask
+
     
     def vec(self, vi, signed=False):
         
@@ -138,3 +159,4 @@ class BaseRVV:
     @NSEW.setter
     def NSEW(self, sew):
         pass
+    

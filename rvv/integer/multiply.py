@@ -9,86 +9,92 @@ class MULTIPLY(BaseRVV):
     ## Same Width
     ##
     
-    def vmul_vv(self, vd, op1, op2):
-        vvd, vop1, vop2 = self._init_ops(vd, op1, op2, 'vvx', False)
-        vvd[:] = vop1[:] * vop2[:]
+    def vmul_vv(self, vd, op1, op2, masked=False):
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvx', False, masked)
+        vvd[mask] = (vop1 * vop2)[mask]
         self._debug_vd(vvd, vd)
         
-    def vmul_vx(self, vd, op1, op2):
-        vvd, vop1, xop2 = self._init_ops(vd, op1, op2, 'vvx', False)
-        vvd[:] = vop1[:] * xop2
+    def vmul_vx(self, vd, op1, op2, masked=False):
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', False, masked)
+        vvd[mask] = (vop1 * xop2)[mask]
         self._debug_vd(vvd, vd)
         
     ##
     ## High Same Width
     ##
         
-    def vmulh_vv(self, vd, op1, op2):
-        vvd, vop1, vop2 = self._init_ops(vd, op1, op2, 'vvv', True)
+    def vmulh_vv(self, vd, op1, op2, masked=False):
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', True, masked)
         for i in range(self.VL):
-            vvd[i] = self.SEW.idtype(int(vop1[i]) * int(vop2[i]) >> self.SEW.SEW)
+            if mask[i]:
+                vvd[i] = self.SEW.idtype(int(vop1[i]) * int(vop2[i]) >> self.SEW.SEW)
         self._debug_vd(vvd, vd)
          
-    def vmulh_vx(self, vd, op1, op2):
-        vvd, vop1, xop2 = self._init_ops(vd, op1, op2, 'vvx', True)
+    def vmulh_vx(self, vd, op1, op2, masked=False):
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', True, masked)
         for i in range(self.VL):
-            vvd[i] = self.SEW.idtype(int(vop1[i]) * int(xop2) >> self.SEW.SEW)
+            if mask[i]:
+                vvd[i] = self.SEW.idtype(int(vop1[i]) * int(xop2) >> self.SEW.SEW)
         self._debug_vd(vvd, vd)
         
-    def vmulhu_vv(self, vd, op1, op2):
-        vvd, vop1, vop2 = self._init_ops(vd, op1, op2, 'vvv', False)
+    def vmulhu_vv(self, vd, op1, op2, masked=False):
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', False, masked)
         for i in range(self.VL):
-            vvd[i] = self.SEW.udtype((int(vop1[i]) * int(vop2[i])) >> self.SEW.SEW)
+            if mask[i]:
+                vvd[i] = self.SEW.udtype((int(vop1[i]) * int(vop2[i])) >> self.SEW.SEW)
         self._debug_vd(vvd, vd)
         
-    def vmulhu_vx(self, vd, op1, op2):
-        vvd, vop1, xop2 = self._init_ops(vd, op1, op2, 'vvx', False)
+    def vmulhu_vx(self, vd, op1, op2, masked=False):
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', False, masked)
         for i in range(self.VL):
-            vvd[i] = self.SEW.udtype((int(vop1[i]) * int(xop2)) >> self.SEW.SEW)
+            if mask[i]:
+                vvd[i] = self.SEW.udtype((int(vop1[i]) * int(xop2)) >> self.SEW.SEW)
         self._debug_vd(vvd, vd)
         
-    def vmulhsu_vv(self, vd, op1, op2):
-        vvd, vop1, vop2 = self._init_ops(vd, op1, op2, 'vvv', 'ssu')
+    def vmulhsu_vv(self, vd, op1, op2, masked=False):
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'ssu', masked)
         for i in range(self.VL):
-            vvd[i] = self.SEW.idtype(int(vop1[i]) * int(vop2[i]) >> self.SEW.SEW)
+            if mask[i]:
+                vvd[i] = self.SEW.idtype(int(vop1[i]) * int(vop2[i]) >> self.SEW.SEW)
         self._debug_vd(vvd, vd)
         
-    def vmulhsu_vx(self, vd, op1, op2):
-        vvd, vop1, xop2 = self._init_ops(vd, op1, op2, 'vvx', 'ssu')
+    def vmulhsu_vx(self, vd, op1, op2, masked=False):
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'ssu', masked)
         for i in range(self.VL):
-            vvd[i] = self.SEW.idtype(int(vop1[i]) * int(xop2) >> self.SEW.SEW)
+            if mask[i]:
+                vvd[i] = self.SEW.idtype(int(vop1[i]) * int(xop2) >> self.SEW.SEW)
         self._debug_vd(vvd, vd)
     
     ##
     ## Widening
     ##
     
-    def vwmul_vv(self, vd, op1, op2):
-        vvd, vop1, vop2 = self._init_ops(vd, op1, op2, 'wvv', True)
-        vvd[:] = self._sext(vop1) * self._sext(vop2)
+    def vwmul_vv(self, vd, op1, op2, masked=False):
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'wvv', True, masked)
+        vvd[mask] = (self._sext(vop1) * self._sext(vop2))[mask]
         self._debug_vd(vvd, vd)
         
-    def vwmul_vx(self, vd, op1, op2):
-        vvd, vop1, xop2 = self._init_ops(vd, op1, op2, 'wvx', True)
-        vvd[:] = self._sext(vop1) * self._sext(xop2)
+    def vwmul_vx(self, vd, op1, op2, masked=False):
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'wvx', True, masked)
+        vvd[mask] = (self._sext(vop1) * self._sext(xop2))[mask]
         self._debug_vd(vvd, vd)
         
-    def vwmulu_vv(self, vd, op1, op2):
-        vvd, vop1, vop2 = self._init_ops(vd, op1, op2, 'wvv', False)
-        vvd[:] = self._zext(vop1) * self._zext(vop2)
+    def vwmulu_vv(self, vd, op1, op2, masked=False):
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'wvv', False, masked)
+        vvd[mask] = (self._zext(vop1) * self._zext(vop2))[mask]
         self._debug_vd(vvd, vd)
         
-    def vwmulu_vx(self, vd, op1, op2):
-        vvd, vop1, xop2 = self._init_ops(vd, op1, op2, 'wvx', False)
-        vvd[:] = self._zext(vop1) * self._zext(xop2)
+    def vwmulu_vx(self, vd, op1, op2, masked=False):
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'wvx', False, masked)
+        vvd[mask] = (self._zext(vop1) * self._zext(xop2))[mask]
         self._debug_vd(vvd, vd)
         
-    def vwmulsu_vv(self, vd, op1, op2):
-        vvd, vop1, vop2 = self._init_ops(vd, op1, op2, 'wvv', 'ssu')
-        vvd[:] = self._sext(vop1) * self._zext(vop2)
+    def vwmulsu_vv(self, vd, op1, op2, masked=False):
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'wvv', 'ssu', masked)
+        vvd[mask] = (self._sext(vop1) * self._zext(vop2))[mask]
         self._debug_vd(vvd, vd)
         
-    def vwmulsu_vx(self, vd, op1, op2):
-        vvd, vop1, xop2 = self._init_ops(vd, op1, op2, 'wvx', 'ssu')
-        vvd[:] = self._sext(vop1) * self._zext(xop2)
+    def vwmulsu_vx(self, vd, op1, op2, masked=False):
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'wvx', 'ssu', masked)
+        vvd[mask] = (self._sext(vop1) * self._zext(xop2))[mask]
         self._debug_vd(vvd, vd)
