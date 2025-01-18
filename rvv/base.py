@@ -36,7 +36,7 @@ class BaseRVV:
         else: raise ValueError(f"Invalid Operand Type {optype}")
         
     def _init_ops(self, vd, op1, op2, optypes, signed, masked):
-        if self.debug: print(f"\n Operation: {inspect.currentframe().f_back.f_code.co_name}")
+        self._debug_operation()
         if type(signed) == bool: signed = 'sss' if signed else 'uuu'    
             
         tvd = self._initer(optypes[0], vd, signed[0])
@@ -82,6 +82,11 @@ class BaseRVV:
     def _debug_mask(self, mask, masked):
         if self.debug and masked:
             print(f"vmask  vm0:  {mask.view(np.uint8)}")
+    
+    def _debug_operation(self):
+        if self.debug:
+            print(f"\n Operation: {inspect.currentframe().f_back.f_back.f_code.co_name}")
+            print(f"{'='*30}")
     
     def _iclip(self, num):
         return np.clip(num, self.SEW.imin, self.SEW.imax)    
@@ -168,6 +173,8 @@ class BaseRVV:
         return self.VRF[start:end].view(np.uint8)
     
     def scalar(self, xi, signed=False):
+        if type(signed) == str:
+            signed = True if signed == 's' else False
         viewtype = self.SEW.idtype if signed else self.SEW.udtype
         return viewtype(xi)
     
