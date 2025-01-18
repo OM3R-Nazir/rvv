@@ -6,6 +6,13 @@ class COMPARE(BaseRVV):
         super().__init__(VLEN, debug)
         
     def vmseq_vv(self, vd, op1, op2, masked=False):
-        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', False, masked)
-        vvd = self.bools_to_mask((vop1 == vop2)[mask])
-        self._debug_vd(vvd, vd, True)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'bvv', False, masked)
+        vmvd_um = self.bools_to_vb((vop1 == vop2))
+        self.vm_masked(vmvd, vmvd_um, mask)
+        self._debug_vmd(vmvd, vd)
+        
+    def vmseq_vx(self, vd, op1, op2, masked=False):
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'bvx', False, masked)
+        vmvd_um = self.bools_to_vb((vop1 == xop2))
+        self.vm_masked(vmvd, vmvd_um, mask)
+        self._debug_vmd(vmvd, vd)
