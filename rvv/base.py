@@ -31,6 +31,7 @@ class BaseRVV:
         if optype == 'v': return self.vec(op, signed)
         elif optype == 'w': return self.vecw(op, signed)
         elif optype == 'x': return self.scalar(op, signed)
+        elif optype == 'm': return self.vecm(op)
         
     def _init_ops(self, vd, op1, op2, optypes, signed, masked):
         
@@ -46,27 +47,33 @@ class BaseRVV:
         if masked:
             if 0 in vector_ops:
                 raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
-            mask = self._get_mask()
+            mask = self.mask_to_bools(self.vecm(0))
         else:
             mask = np.ones(self.VL, dtype=np.bool_)
         
         if self.debug:
-            if optypes[1] == 'x':
-                print(f"xop1    : ", top1)
-            else:
-                print(f"vop1 v{op1:02}: ", top1)
-            if optypes[2] == 'x':
-                print(f"xop2    : ", top1)
-            else:
-                print(f"vop2 v{op1:02}: ", top2)
+            self._debug_val(top1, 1, optypes[1], 'op1')
+            self._debug_val(top2, 2, optypes[2], 'op2')
             if masked:
-                print(f"mask    : ", mask.view(np.uint8))
-        
+                print(f'{"mask":<10}',mask)
         return tvd, top1, top2, mask
         
-    def _debug_vd(self, vec, vec_num):
+    def _debug_val(self, val, val_num, val_type, op_type):
         if self.debug:
-            print(f"vd   v{vec_num:02}: ", vec)
+            if val_type == 'x':
+                print(f"{val_type + op_type:>5}   {val_num:02}: ", val)
+            elif val_type == 'm':
+                val_type = 'vm'
+                print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", self.mask_to_bools(val).view(np.uint8))
+            else:
+                print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", val)
+
+    def _debug_vd(self, vec, vec_num, mask_debug=False):
+        if self.debug:
+            if mask_debug:
+                self._debug_val(vec, vec_num, 'm', 'd')
+            else:
+                self._debug_val(vec, vec_num, 'v', 'd')
     
     def _iclip(self, num):
         return np.clip(num, self.SEW.imin, self.SEW.imax)    
@@ -79,14 +86,34 @@ class BaseRVV:
     
     def _zext(self, num):
         return self.WSEW.udtype(self.SEW.udtype(num)) 
-    
-    def _get_mask(self):
-        v0 = self.VRF[:self.VLENB].view(np.uint8)
-        reverse_mask = v0 % 255 == 0
-        v0[reverse_mask] = v0[reverse_mask] - 255
-        mask = np.unpackbits(v0)[:self.VL].view(np.bool_)
-        return mask
 
+    def bools_to_mask(self, bool_array):
+        if len(bool_array) != self.VL:
+            raise ValueError(f"Invalid Length of Mask {len(bool_array)} for VL {self.VL}")
+        
+        if len(bool_array) % 8 != 0:
+            bool_array = np.pad(bool_array, (0, 8 - len(bool_array) % 8))
+            
+        reversed_bool_array = np.zeros_like(bool_array)
+        for i in range(0, len(bool_array), 8):
+            for j in range(8):
+                reversed_bool_array[i+j] = bool_array[i+7-j]
+                
+        mask = np.packbits(reversed_bool_array).view(np.uint8)
+        return mask
+        
+    def mask_to_bools(self, mask):
+        mask = mask.view(np.uint8)
+        
+        reversed_bool_array = np.unpackbits(mask)
+        bool_array = np.zeros_like(reversed_bool_array)
+        for i in range(0, len(reversed_bool_array), 8):
+            for j in range(8):
+                bool_array[i+j] = reversed_bool_array[i+7-j]
+
+        bool_array = bool_array[:self.VL].view(np.bool_)
+        
+        return bool_array
     
     def vec(self, vi, signed=False):
         
@@ -97,7 +124,7 @@ class BaseRVV:
             signed = True if signed == 's' else False
         
         start = vi * self.VLENB
-        end = vi * self.VLENB + self.VL * self.SEW.SEW // 8
+        end = start + self.VL * self.SEW.SEW // 8
         
         viewtype = self.SEW.idtype if signed else self.SEW.udtype
         
@@ -114,11 +141,16 @@ class BaseRVV:
             signed = True if signed == 's' else False
             
         start = vi * self.VLENB
-        end = vi * self.VLENB + self.VL * SEW.SEW // 8
+        end = start + self.VL * SEW.SEW // 8
         
         viewtype = SEW.idtype if signed else SEW.udtype
         
         return self.VRF[start:end].view(viewtype)
+    
+    def vecm(self, vi):
+        start = vi * self.VLENB
+        end = start + int(np.ceil(self.VL / 8))
+        return self.VRF[start:end].view(np.uint8)
     
     def scalar(self, xi, signed=False):
         viewtype = self.SEW.idtype if signed else self.SEW.udtype
@@ -143,6 +175,18 @@ class BaseRVV:
     def vle(self, vd, inp : np.ndarray):
         vvd = self.vec(vd)
         vvd[:] = np.array(inp).view(self.SEW.udtype)
+
+    def vse(self, vd, out : np.ndarray):
+        vvd = self.vec(vd)
+        out[:vvd.size] = vvd
+    
+    def vlm(self, vd, inp : np.ndarray):
+        vvd = self.vecm(vd)
+        vvd[:] = np.array(inp).view(np.uint8)[:int(np.ceil(self.VL/8))]
+
+    def vsm(self, vd, out : np.ndarray):
+        vvd = self.vecm(vd)
+        out[:vvd.size] = vvd[:]
 
     @property
     def WSEW(self):
