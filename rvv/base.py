@@ -4,7 +4,7 @@ import inspect
 
 class BaseRVV:
     
-    def __init__(self, VLEN: int = 2048, debug = False) -> None:
+    def __init__(self, VLEN: int = 2048, debug = False, debug_vb_as_v = False) -> None:
         self.VLEN : int = VLEN
         self.VLENB : int = VLEN // 8
         self.VRF : np.ndarray = np.zeros(self.VLENB * 32, dtype=np.uint8)
@@ -13,12 +13,12 @@ class BaseRVV:
         self.LMUL : int = None
         self.VL : int = None
         self.VLMAX : int = None
-        
         self._valid_sews : list[int] = [8, 16, 32, 64]
         self._valid_lmuls : list[int] = [1, 2, 4, 8]
         
         self._init_vec_regs()
         self.debug = debug
+        self.debug_vb_as_v = debug_vb_as_v
         
     def _init_vec_regs(self):
         self.vsetvli(0, 8, 1)
@@ -65,7 +65,8 @@ class BaseRVV:
                 print(f"{val_type + op_type:>5}   {val_num:02}: ", val)
             elif val_type == 'b':
                 val_type = 'vb'
-                print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", self.vb_to_bools(val).view(np.uint8))
+                if not self.debug_vb_as_v: val = self.vb_to_bools(val).view(np.uint8)
+                print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", val)
             elif val_type == 'v' or val_type == 'w':
                 print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", val)
             else:
@@ -81,6 +82,7 @@ class BaseRVV:
     
     def _debug_mask(self, mask, masked):
         if self.debug and masked:
+            if self.debug_vb_as_v: mask = self.bools_to_vb(mask)
             print(f"vmask  vm0:  {mask.view(np.uint8)}")
     
     def _debug_operation(self):

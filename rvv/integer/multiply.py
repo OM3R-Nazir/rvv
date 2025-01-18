@@ -2,8 +2,8 @@ from rvv.base import BaseRVV
 import numpy as np
 
 class MULTIPLY(BaseRVV):
-    def __init__(self, VLEN=2048, debug=False):
-        super().__init__(VLEN, debug)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
     
     ##
     ## Same Width

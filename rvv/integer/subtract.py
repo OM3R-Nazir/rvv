@@ -1,8 +1,8 @@
 from rvv.base import BaseRVV
 
 class SUBTRACT(BaseRVV):
-    def __init__(self, VLEN, debug):
-        super().__init__(VLEN, debug)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
     ##
     ## Same Width
