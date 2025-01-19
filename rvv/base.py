@@ -90,6 +90,10 @@ class BaseRVV:
             print(f"\n Operation: {inspect.currentframe().f_back.f_back.f_code.co_name}")
             print(f"{'='*30}")
     
+    def _debug_print(self, *args):
+        if self.debug:
+            print(*args)
+    
     def _iclip(self, num):
         return np.clip(num, self.SEW.imin, self.SEW.imax)    
     
@@ -180,25 +184,37 @@ class BaseRVV:
         viewtype = self.SEW.idtype if signed else self.SEW.udtype
         return viewtype(xi)
     
-    def vsetvli(self, AVL, SEW, LMUL) -> None:
+    def vsetvli(self, avl, e, m) -> None:
         
-        if SEW not in self._valid_sews:
-            raise ValueError(f"Invalid SEW value {SEW}")
-        if LMUL not in self._valid_lmuls:
-            raise ValueError(f"Invaid LMUL value {LMUL}")
+        if e not in self._valid_sews:
+            raise ValueError(f"Invalid SEW value {e}")
+        if m not in self._valid_lmuls:
+            raise ValueError(f"Invaid LMUL value {m}")
         
-        self.SEW = SEWC(SEW)
-        self.LMUL = LMUL
+        self.SEW = SEWC(e)
+        self.LMUL = m
         self.VLMAX = self.VLEN * self.LMUL // self.SEW.SEW
         
-        if AVL == 0: AVL = self.VLMAX
-        self.VL = min([self.VLMAX, AVL]) 
+        if avl == 0: avl = self.VLMAX
+        self.VL = min([self.VLMAX, avl]) 
           
         return self.VL
     
     def vle(self, vd, inp : np.ndarray):
+        if type(inp) == list:
+            self._debug_print(f"Warning: vle({vd}): List Input for vle is not recommended. Use np.array instead.")
+            self._debug_print("Converting List to np.array of dtype", self.SEW.idtype)
+            inp = np.array(inp, dtype=self.SEW.idtype)
+        if inp.itemsize != self.SEW.SEW // 8:
+            self._debug_print(f"Warning: vle({vd}): Input SEW {inp.itemsize*8} does not match Set SEW {self.SEW.SEW}.")
+        inp = inp.view(self.SEW.udtype)
+        if inp.size > self.VL:
+            self._debug_print(f"Warning: vle({vd}): Input Size {inp.size} exceeds VL {self.VL}.")
+        if inp.size < self.VL:
+            raise ValueError(f"vle({vd}): Input Size {inp.size} is less than VL {self.VL}.")
+        
         vvd = self.vec(vd)
-        vvd[:] = np.array(inp).view(self.SEW.udtype)
+        vvd[:] = inp[:self.VL]
 
     def vse(self, vd, out : np.ndarray):
         vvd = self.vec(vd)
