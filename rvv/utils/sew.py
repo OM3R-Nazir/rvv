@@ -28,12 +28,8 @@ class SEWC:
 
     def get_lower_sew(self):
         if self.SEW == 8: raise ValueError("No SEW lower than 8")
-        elif self.SEW == 16: return SEWC(8)
-        elif self.SEW == 32: return SEWC(16)
-        elif self.SEW == 64: return SEWC(32)
+        else: return SEWC(self.SEW//2)
         
     def get_higher_sew(self):
-        if self.SEW == 8: return SEWC(16)
-        elif self.SEW == 16: return SEWC(32)
-        elif self.SEW == 32: return SEWC(64)
-        elif self.SEW == 64: raise ValueError("No SEW higher than 64")
+        if self.SEW == 64: return ValueError("No SEW higher than 64")
+        else: return SEWC(self.SEW*2)
