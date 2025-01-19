@@ -1,5 +1,4 @@
 from rvv.base import BaseRVV
-import numpy as np
 
 class MULTIPLY(BaseRVV):
     def __init__(self, *args, **kwargs):
