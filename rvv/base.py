@@ -58,6 +58,33 @@ class BaseRVV:
         self._debug_mask(mask, masked)
         
         return tvd, top1, top2, mask
+
+        
+    def _init_ops_tri(self, vd, op1, op2, op3, optypes, signed, masked):
+        self._debug_operation()
+        if type(signed) == bool: signed = 'ssss' if signed else 'uuuu'    
+            
+        tvd = self._initer(optypes[0], vd, signed[0])
+        top1 = self._initer(optypes[1], op1, signed[1])
+        top2 = self._initer(optypes[2], op2, signed[2])
+        top3 = self._initer(optypes[3], op3, signed[3])
+        
+        ops = [vd, op1, op2, op3]
+        vector_ops = [ops[i] for i in range(3) if optypes[i] != 'x']
+        
+        if masked:
+            if 0 in vector_ops:
+                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
+            mask = self.vb_to_bools(self.vecb(0))
+        else:
+            mask = np.ones(self.VL, dtype=np.bool_)
+        
+        self._debug_val(top1, 1, optypes[1], 'op1')
+        self._debug_val(top2, 2, optypes[2], 'op2')
+        self._debug_val(top3, 3, optypes[3], 'op3')
+        self._debug_mask(mask, masked)
+        
+        return tvd, top1, top2,top3, mask
         
     def _debug_val(self, val, val_num, val_type, op_type):
         if self.debug:
@@ -76,7 +103,7 @@ class BaseRVV:
         if self.debug:
             self._debug_val(vec, vec_num, 'v', 'd')
                 
-    def _debug_vmd(self, vec, vec_num):
+    def _debug_vbd(self, vec, vec_num):
         if self.debug:
             self._debug_val(vec, vec_num, 'b', 'd')
     
