@@ -32,7 +32,7 @@ class BaseRVV:
         if optype == 'v': return self.vec(op, signed)
         elif optype == 'w': return self.vecw(op, signed)
         elif optype == 'x': return self.scalar(op, signed)
-        elif optype == 'b': return self.vecb(op)
+        elif optype == 'm': return self.vecm(op)
         else: raise ValueError(f"Invalid Operand Type {optype}")
         
     def _init_ops(self, vd, op1, op2, optypes, signed, masked):
@@ -49,7 +49,7 @@ class BaseRVV:
         if masked:
             if 0 in vector_ops:
                 raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
-            mask = self.vb_to_bools(self.vecb(0))
+            mask = self.vm_to_bools(self.vecm(0))
         else:
             mask = np.ones(self.VL, dtype=np.bool_)
         
@@ -75,7 +75,7 @@ class BaseRVV:
         if masked:
             if 0 in vector_ops:
                 raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
-            mask = self.vb_to_bools(self.vecb(0))
+            mask = self.vm_to_bools(self.vecm(0))
         else:
             mask = np.ones(self.VL, dtype=np.bool_)
         
@@ -90,9 +90,9 @@ class BaseRVV:
         if self.debug:
             if val_type == 'x':
                 print(f"{val_type + op_type:>5}   {val_num:02}: ", val)
-            elif val_type == 'b':
-                val_type = 'vb'
-                if not self.debug_vb_as_v: val = self.vb_to_bools(val).view(np.uint8)
+            elif val_type == 'm':
+                val_type = 'vm'
+                if not self.debug_vb_as_v: val = self.vm_to_bools(val).view(np.uint8)
                 print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", val)
             elif val_type == 'v' or val_type == 'w':
                 print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", val)
@@ -103,13 +103,13 @@ class BaseRVV:
         if self.debug:
             self._debug_val(vec, vec_num, 'v', 'd')
                 
-    def _debug_vbd(self, vec, vec_num):
+    def _debug_vmd(self, vec, vec_num):
         if self.debug:
-            self._debug_val(vec, vec_num, 'b', 'd')
+            self._debug_val(vec, vec_num, 'm', 'd')
     
     def _debug_mask(self, mask, masked):
         if self.debug and masked:
-            if self.debug_vb_as_v: mask = self.bools_to_vb(mask)
+            if self.debug_vb_as_v: mask = self.bools_to_vm(mask)
             print(f"vmask  vm0:  {mask.view(np.uint8)}")
     
     def _debug_operation(self):
@@ -133,7 +133,7 @@ class BaseRVV:
     def _zext(self, num):
         return self.WSEW.udtype(self.SEW.udtype(num)) 
 
-    def bools_to_vb(self, bool_array):
+    def bools_to_vm(self, bool_array):
         if len(bool_array) != self.VL:
             raise ValueError(f"Invalid Length of Mask {len(bool_array)} for VL {self.VL}")
         
@@ -148,7 +148,7 @@ class BaseRVV:
         vbool = np.packbits(reversed_bool_array).view(np.uint8)
         return vbool
         
-    def vb_to_bools(self, vbool):
+    def vm_to_bools(self, vbool):
         vbool = vbool.view(np.uint8)
         
         reversed_bool_array = np.unpackbits(vbool)
@@ -162,10 +162,10 @@ class BaseRVV:
         return bool_array
     
     def vm_masked(self, vmd, vms, mask):
-        vmdb = self.vb_to_bools(vmd)
-        vmb = self.vb_to_bools(vms)
+        vmdb = self.vm_to_bools(vmd)
+        vmb = self.vm_to_bools(vms)
         vmdb[mask] = vmb[mask]
-        vmd[:] = self.bools_to_vb(vmdb)
+        vmd[:] = self.bools_to_vm(vmdb)
         return vmd
         
     def vec(self, vi, signed=False):
@@ -200,7 +200,7 @@ class BaseRVV:
         
         return self.VRF[start:end].view(viewtype)
     
-    def vecb(self, vi):
+    def vecm(self, vi):
         start = vi * self.VLENB
         end = start + int(np.ceil(self.VL / 8))
         return self.VRF[start:end].view(np.uint8)
@@ -248,11 +248,11 @@ class BaseRVV:
         out[:vvd.size] = vvd
     
     def vlm(self, vd, inp : np.ndarray):
-        vvd = self.vecb(vd)
+        vvd = self.vecm(vd)
         vvd[:] = np.array(inp).view(np.uint8)[:int(np.ceil(self.VL/8))]
 
     def vsm(self, vd, out : np.ndarray):
-        vvd = self.vecb(vd)
+        vvd = self.vecm(vd)
         out[:vvd.size] = vvd[:]
 
     @property
