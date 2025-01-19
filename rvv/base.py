@@ -9,7 +9,6 @@ class BaseRVV:
         self.VLENB : int = VLEN // 8
         self.VRF : np.ndarray = np.zeros(self.VLENB * 32, dtype=np.uint8)
         self.SEW : SEWC = None
-        self.WSEW : SEWC = None
         self.LMUL : int = None
         self.VL : int = None
         self.VLMAX : int = None
@@ -34,7 +33,29 @@ class BaseRVV:
         elif optype == 'x': return self.scalar(op, signed)
         elif optype == 'm': return self.vecm(op)
         else: raise ValueError(f"Invalid Operand Type {optype}")
+    
+    def _init_ops_uni(self, vd, op1, optypes, signed, masked):
+        self._debug_operation()
+        if type(signed) == bool: signed = 'ss' if signed else 'uu'    
+            
+        tvd = self._initer(optypes[0], vd, signed)
+        top1 = self._initer(optypes[1], op1, signed)
         
+        ops = [vd, op1]
+        vector_ops = [ops[i] for i in range(2) if optypes[i] != 'x']
+        
+        if masked:
+            if 0 in vector_ops:
+                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
+            mask = self.vm_to_bools(self.vecm(0))
+        else:
+            mask = np.ones(self.VL, dtype=np.bool_)
+        
+        self._debug_val(top1, 1, optypes[1], 'op1')
+        self._debug_mask(mask, masked)
+        
+        return tvd, top1, mask
+    
     def _init_ops(self, vd, op1, op2, optypes, signed, masked):
         self._debug_operation()
         if type(signed) == bool: signed = 'sss' if signed else 'uuu'    
@@ -85,7 +106,45 @@ class BaseRVV:
         self._debug_mask(mask, masked)
         
         return tvd, top1, top2,top3, mask
+    
+    def _init_ops_ext(self, vd, op1, optype, signed, masked):
+        self._debug_operation()
+           
+        if optype == 'vf2':
+            if self.SEW.SEW < 16: raise ValueError("EXT_VF2 requires SEW >= 16")
+            op1_sew = self.SEW.get_lower_sew()
+        elif optype == 'vf4':
+            if self.SEW.SEW < 32: raise ValueError("EXT_VF4 requires SEW >= 32")
+            op1_sew = self.SEW.get_lower_sew().get_lower_sew()
+        elif optype == 'vf8':
+            if self.SEW.SEW < 64: raise ValueError("EXT_VF8 requires SEW = 64")
+            op1_sew = self.SEW.get_lower_sew().get_lower_sew().get_lower_sew()
+            
+        tvd = self.vec(vd, signed)
+        top1 = self.vec(op1, signed)
         
+        if signed:
+            top1 = top1.view(op1_sew.idtype)
+        else:
+            top1 = top1.view(op1_sew.udtype)
+        
+        top1 = top1[:self.VL]
+        
+        ops = [vd, op1]
+        vector_ops = [ops[i] for i in range(2) if optype[i] != 'x']
+        
+        if masked:
+            if 0 in vector_ops:
+                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
+            mask = self.vm_to_bools(self.vecm(0))
+        else:
+            mask = np.ones(self.VL, dtype=np.bool_)
+        
+        self._debug_val(top1, 1, 'v', 'op1')
+        self._debug_mask(mask, masked)
+        
+        return tvd, top1, mask
+    
     def _debug_val(self, val, val_num, val_type, op_type):
         if self.debug:
             if val_type == 'x':
