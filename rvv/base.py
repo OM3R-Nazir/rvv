@@ -27,82 +27,54 @@ class BaseRVV:
             for k in range(self.VL):
                 v[k] = k
     
-    def _initer(self, optype, op, viewtype):
+    def _initer(self, op, optype, viewtype):
         if optype == 'v': return self.vec(op, viewtype)
         elif optype == 'w': return self.vecw(op, viewtype)
         elif optype == 'x': return self.scalar(op, viewtype)
         elif optype == 'm': return self.vecm(op)
         else: raise ValueError(f"Invalid Operand Type {optype}")
     
-    def _init_ops_uni(self, vd, op1, optypes, viewtype, masked):
+    def _init_ops_generic(self, ops, optypes, viewtypes, masked):
         self._debug_operation()
-      
-        tvd = self._initer(optypes[0], vd, viewtype)
-        top1 = self._initer(optypes[1], op1, viewtype)
         
-        ops = [vd, op1]
-        vector_ops = [ops[i] for i in range(2) if optypes[i] != 'x']
+        # Initialize all operands
+        vops = []
+        for op, optype, viewtype in zip(ops, optypes, viewtypes):
+            vop = self._initer(op, optype, viewtype)
+            vops.append(vop)
         
-        if masked:
-            if 0 in vector_ops:
-                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
-            mask = self.vm_to_bools(self.vecm(0))
-        else:
-            mask = np.ones(self.VL, dtype=np.bool_)
-        
-        self._debug_val(top1, 1, optypes[1], 'op1')
-        self._debug_mask(mask, masked)
-        
-        return tvd, top1, mask
-    
-    def _init_ops(self, vd, op1, op2, optypes, viewtype, masked):
-        self._debug_operation()
+        # Debug all ops
+        for i, (vop, op, optype) in enumerate(list(zip(vops, ops, optypes))):
+            opname = 'd' if i == 0 else f'op{i}'
+            self._debug_val(optype, opname, vop, op)
             
-        tvd = self._initer(optypes[0], vd, viewtype[0])
-        top1 = self._initer(optypes[1], op1, viewtype[1])
-        top2 = self._initer(optypes[2], op2, viewtype[2])
-        
-        ops = [vd, op1, op2]
-        vector_ops = [ops[i] for i in range(3) if optypes[i] != 'x']
-        
+        # Generate Mask
         if masked:
+            vector_ops = [ops[i] for i in range(2) if optypes[i] != 'x']
             if 0 in vector_ops:
                 raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
             mask = self.vm_to_bools(self.vecm(0))
         else:
             mask = np.ones(self.VL, dtype=np.bool_)
         
-        self._debug_val(top1, 1, optypes[1], 'op1')
-        self._debug_val(top2, 2, optypes[2], 'op2')
+        # Debug Mask
         self._debug_mask(mask, masked)
-        
-        return tvd, top1, top2, mask
+        vops.append(mask)
+        # Post Operation Flag:
+        self._pvd = {'optype': optypes[0], 'vop': vops[0], 'op' : ops[0], 'mask': mask}
+        return vops
+    
+    def _init_ops_uni(self, vd, op1, optypes, viewtypes, masked):
+        self._debug_operation()
+        return self._init_ops_generic([vd, op1], optypes, viewtypes, masked)
+    
+    def _init_ops(self, vd, op1, op2, optypes, viewtypes, masked):
+        self._debug_operation()
+        return self._init_ops_generic([vd, op1, op2], optypes, viewtypes, masked)
 
-        
     def _init_ops_tri(self, vd, op1, op2, op3, optypes, viewtype, masked):
         self._debug_operation()
-            
-        tvd = self._initer(optypes[0], vd, viewtype[0])
-        top1 = self._initer(optypes[1], op1, viewtype[1])
-        top2 = self._initer(optypes[2], op2, viewtype[2])
-        top3 = self._initer(optypes[3], op3, viewtype[3])
-        
-        ops = [vd, op1, op2, op3]
-        vector_ops = [ops[i] for i in range(3) if optypes[i] != 'x']
-        
-        if masked:
-            if 0 in vector_ops:
-                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
-            mask = self.vm_to_bools(self.vecm(0))
-        else:
-            mask = np.ones(self.VL, dtype=np.bool_)
-        
-        self._debug_val(top1, 1, optypes[1], 'op1')
-        self._debug_val(top2, 2, optypes[2], 'op2')
-        self._debug_val(top3, 3, optypes[3], 'op3')
-        self._debug_mask(mask, masked)
-        
-        return tvd, top1, top2,top3, mask
+        return self._init_ops_generic([vd, op1, op2, op3], optypes, viewtype, masked)
     
     def _init_ops_ext(self, vd, op1, optype, signed, masked):
         self._debug_operation()
@@ -118,15 +90,15 @@ class BaseRVV:
             op1_sew = self.SEW.get_lower_sew().get_lower_sew().get_lower_sew()
         
         viewtype = 's' if signed else 'u'
-        tvd = self.vec(vd, viewtype)
-        top1 = self.vec(op1, viewtype)
+        vvd = self.vec(vd, viewtype)
+        vop1 = self.vec(op1, viewtype)
         
         if signed:
-            top1 = top1.view(op1_sew.idtype)
+            vop1 = vop1.view(op1_sew.idtype)
         else:
-            top1 = top1.view(op1_sew.udtype)
+            vop1 = vop1.view(op1_sew.udtype)
         
-        top1 = top1[:self.VL]
+        vop1 = vop1[:self.VL]
         
         ops = [vd, op1]
         vector_ops = [ops[i] for i in range(2) if optype[i] != 'x']
@@ -138,31 +110,38 @@ class BaseRVV:
         else:
             mask = np.ones(self.VL, dtype=np.bool_)
         
-        self._debug_val(top1, 1, 'v', 'op1')
+        self._debug_val('v', 'd', vvd, vd)
+        self._debug_val('v', 'op1', vop1, op1)
         self._debug_mask(mask, masked)
         
-        return tvd, top1, mask
+        # Post Operation VD:
+        self._pvd = {'optype': 'v', 'vop': vvd, 'op' : vd}
+        
+        return vvd, vop1, mask
     
-    def _debug_val(self, val, val_num, val_type, op_type):
+    def _post_op(self):
+        if self._pvd['optype'] == 'x':
+            pass
+        else:
+            if self.debug:
+                self._debug_val(self._pvd['optype'], 'd', self._pvd['vop'], self._pvd['op'])
+    
+    def _debug_val(self, optype, opname, vop, op=None):
         if self.debug:
-            if val_type == 'x':
-                print(f"{val_type + op_type:>5}   {val_num:02}: ", val)
-            elif val_type == 'm':
-                val_type = 'vm'
-                if not self.debug_vb_as_v: val = self.vm_to_bools(val).view(np.uint8)
-                print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", val)
-            elif val_type == 'v' or val_type == 'w':
-                print(f"{val_type + op_type:>5} {val_type:>2}{val_num:02}: ", val)
+            if optype == 'x':
+                print(f"{optype + opname:>5}     : ", vop)
+            elif optype == 'v' or optype == 'w':
+                print(f"{optype + opname:>5} {optype:>2}{op:02}: ", vop)
+            elif optype == 'm':
+                optype = 'vm'
+                if not self.debug_vb_as_v: vop = self.vm_to_bools(vop).view(np.uint8)
+                print(f"{optype + opname:>5} {optype:>2}{op:02}: ", vop)
             else:
-                raise ValueError(f"Invalid Value Type {val_type}")
-            
-    def _debug_vd(self, vec, vec_num):
-        if self.debug:
-            self._debug_val(vec, vec_num, 'v', 'd')
+                raise ValueError(f"Invalid Value Type {optype}")
                 
-    def _debug_vmd(self, vec, vec_num):
+    def _debug_vmd(self):
         if self.debug:
-            self._debug_val(vec, vec_num, 'm', 'd')
+            pass
     
     def _debug_mask(self, mask, masked):
         if self.debug and masked:
@@ -229,6 +208,7 @@ class BaseRVV:
         if viewtype == 'u': return self.SEW.udtype
         elif viewtype == 's': return self.SEW.idtype
         elif viewtype == 'f': return self.SEW.fdtype
+        else: raise ValueError(f"Invalid Viewtype {viewtype}")
     
     def vec(self, vi, viewtype='u'):
         
@@ -260,9 +240,7 @@ class BaseRVV:
         return self.VRF[start:end].view(np.uint8)
     
     def scalar(self, xi, viewtype=False):
-        if type(viewtype) == str:
-            viewtype = True if viewtype == 's' else False
-        viewtype = self.SEW.idtype if viewtype else self.SEW.udtype
+        viewtype = self._get_viewtype(viewtype)
         return viewtype(xi)
     
     def vsetvli(self, avl, e, m) -> None:
