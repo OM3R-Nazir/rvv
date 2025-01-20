@@ -10,22 +10,22 @@ class MISC(BaseRVV):
     ##
     
     def vmin_vv(self, vd, op1, op2, masked):
-        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', True, masked)
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'sss', masked)
         vvd[mask] = np.minimum(vop1, vop2)[mask]
         self._debug_vd(vvd, vd)
 
     def vmin_vx(self, vd, op1, op2, masked):
-        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', True, masked)
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'sss', masked)
         vvd[mask] = np.minimum(vop1, xop2)[mask]
         self._debug_vd(vvd, vd)
     
     def vminu_vv(self, vd, op1, op2, masked):
-        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', False, masked)
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'uuu', masked)
         vvd[mask] = np.minimum(vop1, vop2)[mask]
         self._debug_vd(vvd, vd)
     
     def vminu_vx(self, vd, op1, op2, masked):
-        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', False, masked)
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'uuu', masked)
         vvd[mask] = np.minimum(vop1, xop2)[mask]
         self._debug_vd(vvd, vd)
     
@@ -34,22 +34,22 @@ class MISC(BaseRVV):
     ##
     
     def vmax_vv(self, vd, op1, op2, masked):
-        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', True, masked)
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'sss', masked)
         vvd[mask] = np.maximum(vop1, vop2)[mask]
         self._debug_vd(vvd, vd)
         
     def vmax_vx(self, vd, op1, op2, masked):
-        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', True, masked)
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'sss', masked)
         vvd[mask] = np.maximum(vop1, xop2)[mask]
         self._debug_vd(vvd, vd)
         
     def vmaxu_vv(self, vd, op1, op2, masked):
-        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', False, masked)
+        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'uuu', masked)
         vvd[mask] = np.maximum(vop1, vop2)[mask]
         self._debug_vd(vvd, vd)
     
     def vmaxu_vx(self, vd, op1, op2, masked):
-        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', False, masked)
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'uuu', masked)
         vvd[mask] = np.maximum(vop1, xop2)[mask]
         self._debug_vd(vvd, vd)
     
@@ -58,7 +58,7 @@ class MISC(BaseRVV):
     ##
     
     def vneg_v(self, vd, op1, masked):
-        vvd, vop1, mask = self._init_ops_uni(vd, op1, 'vv', True, masked)
+        vvd, vop1, mask = self._init_ops_uni(vd, op1, 'vv', 'ss', masked)
         vvd[mask] = -vop1[mask]
         self._debug_vd(vvd, vd)
 

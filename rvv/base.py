@@ -27,19 +27,18 @@ class BaseRVV:
             for k in range(self.VL):
                 v[k] = k
     
-    def _initer(self, optype, op, signed):
-        if optype == 'v': return self.vec(op, signed)
-        elif optype == 'w': return self.vecw(op, signed)
-        elif optype == 'x': return self.scalar(op, signed)
+    def _initer(self, optype, op, viewtype):
+        if optype == 'v': return self.vec(op, viewtype)
+        elif optype == 'w': return self.vecw(op, viewtype)
+        elif optype == 'x': return self.scalar(op, viewtype)
         elif optype == 'm': return self.vecm(op)
         else: raise ValueError(f"Invalid Operand Type {optype}")
     
-    def _init_ops_uni(self, vd, op1, optypes, signed, masked):
+    def _init_ops_uni(self, vd, op1, optypes, viewtype, masked):
         self._debug_operation()
-        if type(signed) == bool: signed = 'ss' if signed else 'uu'    
-            
-        tvd = self._initer(optypes[0], vd, signed)
-        top1 = self._initer(optypes[1], op1, signed)
+      
+        tvd = self._initer(optypes[0], vd, viewtype)
+        top1 = self._initer(optypes[1], op1, viewtype)
         
         ops = [vd, op1]
         vector_ops = [ops[i] for i in range(2) if optypes[i] != 'x']
@@ -56,13 +55,12 @@ class BaseRVV:
         
         return tvd, top1, mask
     
-    def _init_ops(self, vd, op1, op2, optypes, signed, masked):
+    def _init_ops(self, vd, op1, op2, optypes, viewtype, masked):
         self._debug_operation()
-        if type(signed) == bool: signed = 'sss' if signed else 'uuu'    
             
-        tvd = self._initer(optypes[0], vd, signed[0])
-        top1 = self._initer(optypes[1], op1, signed[1])
-        top2 = self._initer(optypes[2], op2, signed[2])
+        tvd = self._initer(optypes[0], vd, viewtype[0])
+        top1 = self._initer(optypes[1], op1, viewtype[1])
+        top2 = self._initer(optypes[2], op2, viewtype[2])
         
         ops = [vd, op1, op2]
         vector_ops = [ops[i] for i in range(3) if optypes[i] != 'x']
@@ -81,14 +79,13 @@ class BaseRVV:
         return tvd, top1, top2, mask
 
         
-    def _init_ops_tri(self, vd, op1, op2, op3, optypes, signed, masked):
+    def _init_ops_tri(self, vd, op1, op2, op3, optypes, viewtype, masked):
         self._debug_operation()
-        if type(signed) == bool: signed = 'ssss' if signed else 'uuuu'    
             
-        tvd = self._initer(optypes[0], vd, signed[0])
-        top1 = self._initer(optypes[1], op1, signed[1])
-        top2 = self._initer(optypes[2], op2, signed[2])
-        top3 = self._initer(optypes[3], op3, signed[3])
+        tvd = self._initer(optypes[0], vd, viewtype[0])
+        top1 = self._initer(optypes[1], op1, viewtype[1])
+        top2 = self._initer(optypes[2], op2, viewtype[2])
+        top3 = self._initer(optypes[3], op3, viewtype[3])
         
         ops = [vd, op1, op2, op3]
         vector_ops = [ops[i] for i in range(3) if optypes[i] != 'x']
@@ -119,9 +116,10 @@ class BaseRVV:
         elif optype == 'vf8':
             if self.SEW.SEW < 64: raise ValueError("EXT_VF8 requires SEW = 64")
             op1_sew = self.SEW.get_lower_sew().get_lower_sew().get_lower_sew()
-            
-        tvd = self.vec(vd, signed)
-        top1 = self.vec(op1, signed)
+        
+        viewtype = 's' if signed else 'u'
+        tvd = self.vec(vd, viewtype)
+        top1 = self.vec(op1, viewtype)
         
         if signed:
             top1 = top1.view(op1_sew.idtype)
@@ -226,37 +224,34 @@ class BaseRVV:
         vmdb[mask] = vmb[mask]
         vmd[:] = self.bools_to_vm(vmdb)
         return vmd
-        
-    def vec(self, vi, signed=False):
+    
+    def _get_viewtype(self, viewtype):
+        if viewtype == 'u': return self.SEW.udtype
+        elif viewtype == 's': return self.SEW.idtype
+        elif viewtype == 'f': return self.SEW.fdtype
+    
+    def vec(self, vi, viewtype='u'):
         
         if vi % self.LMUL != 0:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {self.LMUL}")
-        
-        if type(signed) == str:
-            signed = True if signed == 's' else False
-        
+                
         start = vi * self.VLENB
         end = start + self.VL * self.SEW.SEW // 8
-        
-        viewtype = self.SEW.idtype if signed else self.SEW.udtype
+        viewtype = self._get_viewtype(viewtype)
         
         return self.VRF[start:end].view(viewtype)
     
-    def vecw(self, vi, signed=False):
+    def vecw(self, vi, viewtype='u'):
         LMUL = self.LMUL + 1
         SEW = self.SEW.get_higher_sew()
 
         if vi % LMUL != 0:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
-        
-        if type(signed) == str:
-            signed = True if signed == 's' else False
             
         start = vi * self.VLENB
         end = start + self.VL * SEW.SEW // 8
-        
-        viewtype = SEW.idtype if signed else SEW.udtype
-        
+        viewtype = self._get_viewtype(viewtype)
+
         return self.VRF[start:end].view(viewtype)
     
     def vecm(self, vi):
@@ -264,10 +259,10 @@ class BaseRVV:
         end = start + int(np.ceil(self.VL / 8))
         return self.VRF[start:end].view(np.uint8)
     
-    def scalar(self, xi, signed=False):
-        if type(signed) == str:
-            signed = True if signed == 's' else False
-        viewtype = self.SEW.idtype if signed else self.SEW.udtype
+    def scalar(self, xi, viewtype=False):
+        if type(viewtype) == str:
+            viewtype = True if viewtype == 's' else False
+        viewtype = self.SEW.idtype if viewtype else self.SEW.udtype
         return viewtype(xi)
     
     def vsetvli(self, avl, e, m) -> None:

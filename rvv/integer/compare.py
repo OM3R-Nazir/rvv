@@ -9,25 +9,25 @@ class COMPARE(BaseRVV):
     ##    
     
     def vmseq_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', False, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 == vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmseq_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', False, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 == xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsne_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', False, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 != vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsne_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', False, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 != xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
@@ -37,49 +37,49 @@ class COMPARE(BaseRVV):
     ##
     
     def vmslt_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', True, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'sss', masked)
         vmvd_um = self.bools_to_vm((vop1 < vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmslt_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', True, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'sss', masked)
         vmvd_um = self.bools_to_vm((vop1 < xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)    
     
     def vmsle_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', True, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'sss', masked)
         vmvd_um = self.bools_to_vm((vop1 <= vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsle_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', True, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'sss', masked)
         vmvd_um = self.bools_to_vm((vop1 <= xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
     
     def vmsgt_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', True, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'sss', masked)
         vmvd_um = self.bools_to_vm((vop1 > vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsgt_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', True, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'sss', masked)
         vmvd_um = self.bools_to_vm((vop1 > xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)    
     
     def vmsge_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', True, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'sss', masked)
         vmvd_um = self.bools_to_vm((vop1 >= vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsge_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', True, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'sss', masked)
         vmvd_um = self.bools_to_vm((vop1 >= xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)    
@@ -89,49 +89,49 @@ class COMPARE(BaseRVV):
     ##
     
     def vmsltu_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', False, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 < vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsltu_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', False, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 < xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)    
     
     def vmsleu_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', False, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 <= vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsleu_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', False, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 <= xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
     
     def vmsgtu_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', False, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 > vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsgtu_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', False, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 > xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)    
     
     def vmsgeu_vv(self, vd, op1, op2, masked=False):
-        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', False, masked)
+        vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 >= vop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)
         
     def vmsgeu_vx(self, vd, op1, op2, masked=False):
-        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', False, masked)
+        vmvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'mvx', 'uuu', masked)
         vmvd_um = self.bools_to_vm((vop1 >= xop2))
         self.vm_masked(vmvd, vmvd_um, mask)
         self._debug_vmd(vmvd, vd)       

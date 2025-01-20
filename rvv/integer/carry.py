@@ -9,12 +9,12 @@ class CARRY(BaseRVV):
     ##
     
     def vadc_vvm(self, vd, op1, op2, carryin):
-        vvd, vop1, vop2, carryin, mask = self._init_ops_tri(vd, op1, op2, carryin, 'vvvm', False, False)
+        vvd, vop1, vop2, carryin, mask = self._init_ops_tri(vd, op1, op2, carryin, 'vvvm', 'uuuu', False)
         vvd[:] = vop1 + vop2 + self.vm_to_bools(carryin)
         self._debug_vd(vvd, vd)
     
     def vadc_vxm(self, vd, op1, op2, carryin):
-        vvd, vop1, xop2, carryin, mask = self._init_ops_tri(vd, op1, op2, carryin, 'vvxm', False, False)
+        vvd, vop1, xop2, carryin, mask = self._init_ops_tri(vd, op1, op2, carryin, 'vvxm', 'uuuu', False)
         vvd[:] = vop1 + xop2 + self.vm_to_bools(carryin)
         self._debug_vd(vvd, vd)
         
@@ -23,7 +23,7 @@ class CARRY(BaseRVV):
     ##
     
     def vmadc_vv(self, vmd, op1, op2):
-        vvmd, vop1, vop2, mask = self._init_ops(vmd, op1, op2, 'mvv', False, False)
+        vvmd, vop1, vop2, mask = self._init_ops(vmd, op1, op2, 'mvv', 'uuu', False)
         vvmd_b = self.vm_to_bools(vvmd)
         for i in range(self.VL):
             vvmd_b[i] = (int(vop1[i]) + int(vop2[i])) > self.SEW.umax
@@ -31,7 +31,7 @@ class CARRY(BaseRVV):
         self._debug_vmd(vvmd, vmd)
     
     def vmadc_vx(self, vmd, op1, op2):
-        vvmd, vop1, xop2, mask = self._init_ops(vmd, op1, op2, 'mvx', False, False)
+        vvmd, vop1, xop2, mask = self._init_ops(vmd, op1, op2, 'mvx', 'uuu', False)
         vvmd_b = self.vm_to_bools(vvmd)
         for i in range(self.VL):
             vvmd_b[i] = (int(vop1[i]) + int(xop2)) > self.SEW.umax
@@ -39,7 +39,7 @@ class CARRY(BaseRVV):
         self._debug_vmd(vvmd, vmd)
     
     def vmadc_vvm(self, vmd, op1, op2, carryin):
-        vvmd, vop1, vop2, carryin, mask = self._init_ops_tri(vmd, op1, op2, carryin, 'mvvm', False, False)
+        vvmd, vop1, vop2, carryin, mask = self._init_ops_tri(vmd, op1, op2, carryin, 'mvvm', 'uuuu', False)
         vvmd_b = self.vm_to_bools(vvmd)
         carryin = self.vm_to_bools(carryin)
         for i in range(self.VL):
@@ -48,7 +48,7 @@ class CARRY(BaseRVV):
         self._debug_vmd(vvmd, vmd)
     
     def vmadc_vxm(self, vmd, op1, op2, carryin):
-        vvmd, vop1, xop2, carryin, mask = self._init_ops_tri(vmd, op1, op2, carryin, 'mvxm', False, False)
+        vvmd, vop1, xop2, carryin, mask = self._init_ops_tri(vmd, op1, op2, carryin, 'mvxm', 'uuuu', False)
         vvmd_b = self.vm_to_bools(vvmd)
         carryin = self.vm_to_bools(carryin)
         for i in range(self.VL):
@@ -61,12 +61,12 @@ class CARRY(BaseRVV):
     ##
     
     def vsbc_vvm(self, vd, op1, op2, borrowin):
-        vvd, vop1, vop2, borrowin, mask = self._init_ops_tri(vd, op1, op2, borrowin, 'vvm', False, False)
+        vvd, vop1, vop2, borrowin, mask = self._init_ops_tri(vd, op1, op2, borrowin, 'vvvm', 'uuuu', False)
         vvd[:] = vop1 - vop2 - self.vm_to_bools(borrowin)
         self._debug_vd(vvd, vd)
         
     def vsbc_vxm(self, vd, op1, op2, borrowin):
-        vvd, vop1, xop2, borrowin, mask = self._init_ops_tri(vd, op1, op2, borrowin, 'vxm', False, False)
+        vvd, vop1, xop2, borrowin, mask = self._init_ops_tri(vd, op1, op2, borrowin, 'vvxm', 'uuuu', False)
         vvd[:] = vop1 - xop2 - self.vm_to_bools(borrowin)
         self._debug_vd(vvd, vd)
     
@@ -75,7 +75,7 @@ class CARRY(BaseRVV):
     ##
     
     def vmsbc_vv(self, vmd, op1, op2):
-        vvmd, vop1, vop2, mask = self._init_ops(vmd, op1, op2, 'mvv', False, False)
+        vvmd, vop1, vop2, mask = self._init_ops(vmd, op1, op2, 'mvv', 'uuu', False)
         vvmd_b = self.vm_to_bools(vvmd)
         for i in range(self.VL):
             vvmd_b[i] = (int(vop1[i]) - int(vop2[i])) < 0
@@ -83,7 +83,7 @@ class CARRY(BaseRVV):
         self._debug_vmd(vvmd, vmd)
         
     def vmsbc_vx(self, vmd, op1, op2):
-        vvmd, vop1, xop2, mask = self._init_ops(vmd, op1, op2, 'mvx', False, False)
+        vvmd, vop1, xop2, mask = self._init_ops(vmd, op1, op2, 'mvx', 'uuu', False)
         vvmd_b = self.vm_to_bools(vvmd)
         for i in range(self.VL):
             vvmd_b[i] = (int(vop1[i]) - int(xop2)) < 0
@@ -91,7 +91,7 @@ class CARRY(BaseRVV):
         self._debug_vmd(vvmd, vmd)
         
     def vmsbc_vvm(self, vmd, op1, op2, borrowin):
-        vvmd, vop1, vop2, borrowin, mask = self._init_ops_tri(vmd, op1, op2, borrowin, 'mvvm', False, False)
+        vvmd, vop1, vop2, borrowin, mask = self._init_ops_tri(vmd, op1, op2, borrowin, 'mvvm', 'uuuu', False)
         vvmd_b = self.vm_to_bools(vvmd)
         borrowin = self.vm_to_bools(borrowin)
         for i in range(self.VL):
@@ -100,7 +100,7 @@ class CARRY(BaseRVV):
         self._debug_vmd(vvmd, vmd)
     
     def vmsbc_vxm(self, vmd, op1, op2, borrowin):
-        vvmd, vop1, xop2, borrowin, mask = self._init_ops_tri(vmd, op1, op2, borrowin, 'mvxm', False, False)
+        vvmd, vop1, xop2, borrowin, mask = self._init_ops_tri(vmd, op1, op2, borrowin, 'mvxm', 'uuuu', False)
         vvmd_b = self.vm_to_bools(vvmd)
         borrowin = self.vm_to_bools(borrowin)
         for i in range(self.VL):
