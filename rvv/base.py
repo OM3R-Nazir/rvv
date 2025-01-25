@@ -288,7 +288,7 @@ class BaseRVV:
         vvd = self.vecm(vd)
         out[:vvd.size] = vvd[:]
 
-    def r(self, xi, value):
+    def li(self, xi, value):
         self.SRF[xi] = np.uint64(value)
 
     @property
