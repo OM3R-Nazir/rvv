@@ -7,13 +7,16 @@ class BaseRVV:
     def __init__(self, VLEN: int = 2048, debug = False, debug_vb_as_v = False) -> None:
         self.VLEN : int = VLEN
         self.VLENB : int = VLEN // 8
-        self.VRF : np.ndarray = np.zeros(self.VLENB * 32, dtype=np.uint8)
         self.SEW : SEWC = None
         self.LMUL : int = None
         self.VL : int = None
         self.VLMAX : int = None
         self._valid_sews : list[int] = [8, 16, 32, 64]
         self._valid_lmuls : list[int] = [1, 2, 4, 8]
+        
+        self.VRF : np.ndarray = np.zeros(self.VLENB * 32, dtype=np.uint8)
+        self.SRF : list[np.uint64] = [np.uint64(0) for _ in range(32)]
+        self.FRF : list[np.float64] = [np.float64(0) for _ in range(32)]
         
         self._init_vec_regs()
         self.debug = debug
@@ -30,13 +33,11 @@ class BaseRVV:
     def _initer(self, op, optype, viewtype):
         if optype == 'v': return self.vec(op, viewtype)
         elif optype == 'w': return self.vecw(op, viewtype)
-        elif optype == 'x': return self.scalar(op, viewtype)
+        elif optype == 'x': return self.sreg(op, viewtype)
         elif optype == 'm': return self.vecm(op)
         else: raise ValueError(f"Invalid Operand Type {optype}")
     
-    def _init_ops_generic(self, ops, optypes, viewtypes, masked):
-        self._debug_operation()
-        
+    def _init_ops_generic(self, ops, optypes, viewtypes, masked):        
         # Initialize all operands
         vops = []
         for op, optype, viewtype in zip(ops, optypes, viewtypes):
@@ -239,9 +240,9 @@ class BaseRVV:
         end = start + int(np.ceil(self.VL / 8))
         return self.VRF[start:end].view(np.uint8)
     
-    def scalar(self, xi, viewtype=False):
+    def sreg(self, xi, viewtype=False):
         viewtype = self._get_viewtype(viewtype)
-        return viewtype(xi)
+        return viewtype(self.SRF[xi])
     
     def vsetvli(self, avl, e, m) -> None:
         
@@ -286,6 +287,9 @@ class BaseRVV:
     def vsm(self, vd, out : np.ndarray):
         vvd = self.vecm(vd)
         out[:vvd.size] = vvd[:]
+
+    def r(self, xi, value):
+        self.SRF[xi] = np.uint64(value)
 
     @property
     def WSEW(self):
