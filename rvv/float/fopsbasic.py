@@ -1,6 +1,6 @@
 from rvv.base import BaseRVV
 
-class BASICOPS(BaseRVV):
+class FOpsBasic(BaseRVV):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
