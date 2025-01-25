@@ -13,6 +13,7 @@ class BaseRVV:
         self.VLMAX : int = None
         self._valid_sews : list[int] = [8, 16, 32, 64]
         self._valid_lmuls : list[int] = [1, 2, 4, 8]
+        self._valid_fsews : list[int] = [32, 64]
         
         self.VRF : np.ndarray = np.zeros(self.VLENB * 32, dtype=np.uint8)
         self.SRF : list[np.uint64] = [np.uint64(0) for _ in range(32)]
@@ -46,8 +47,11 @@ class BaseRVV:
         
         # Debug all ops
         for i, (vop, op, optype) in enumerate(list(zip(vops, ops, optypes))):
-            opname = 'd' if i == 0 else f'op{i}'
-            self._debug_val(optype, opname, vop, op)
+            if i == 0:
+                self._debug_val(optype, 'd', vop, op)
+                self._debug_print(f"{'-'*30}")
+            else:  
+                self._debug_val(optype, f'op{i}', vop, op)
             
         # Generate Mask
         if masked:
@@ -112,6 +116,7 @@ class BaseRVV:
             mask = np.ones(self.VL, dtype=np.bool_)
         
         self._debug_val('v', 'd', vvd, vd)
+        self._debug_print(f"{'-'*30}")
         self._debug_val('v', 'op1', vop1, op1)
         self._debug_mask(mask, masked)
         
@@ -151,7 +156,9 @@ class BaseRVV:
     
     def _debug_operation(self):
         if self.debug:
-            print(f"\n Operation: {inspect.currentframe().f_back.f_back.f_code.co_name}")
+            print("\n")
+            print(f"{'='*30}")
+            print(f" Operation: {inspect.currentframe().f_back.f_back.f_code.co_name}")
             print(f"{'='*30}")
     
     def _debug_print(self, *args):
@@ -206,9 +213,14 @@ class BaseRVV:
         return vmd
     
     def _get_viewtype(self, viewtype):
+        
         if viewtype == 'u': return self.SEW.udtype
         elif viewtype == 's': return self.SEW.idtype
-        elif viewtype == 'f': return self.SEW.fdtype
+        
+        elif viewtype == 'f': 
+            if self.SEW.SEW not in self._valid_fsews: 
+                raise ValueError(f"Invalid SEW {self.SEW.SEW} for viewtype 'f'")
+            return self.SEW.fdtype
         else: raise ValueError(f"Invalid Viewtype {viewtype}")
     
     def vec(self, vi, viewtype='u'):
@@ -241,8 +253,9 @@ class BaseRVV:
         return self.VRF[start:end].view(np.uint8)
     
     def sreg(self, xi, viewtype=False):
+        regfile = self.FRF if viewtype == 'f' else self.SRF
         viewtype = self._get_viewtype(viewtype)
-        return viewtype(self.SRF[xi])
+        return viewtype(regfile[xi])
     
     def vsetvli(self, avl, e, m) -> None:
         
@@ -290,6 +303,12 @@ class BaseRVV:
 
     def li(self, xi, value):
         self.SRF[xi] = np.uint64(value)
+        
+    def flw(self, xi, value):
+        self.FRF[xi] = np.float32(value)
+    
+    def flf(self, xi, value):
+        self.FRF[xi] = np.float64(value)
 
     @property
     def WSEW(self):
