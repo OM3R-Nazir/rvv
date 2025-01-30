@@ -6,12 +6,12 @@ class MMisc(BaseRVV):
         super().__init__(*args, **kwargs)
     
     def vfirst_m(self, xd, op1, masked = False):
-        xd, op1, mask = self._init_ops_sca(xd, op1, 'm', 'u', masked)
+        xd, op1, mask = self._init_ops_uni(xd, op1, 'xm', 'xu', masked)
         xd[:] = np.argmax(self.vm_to_bools(op1) & mask) if np.any(op1) else -1 
         self._post_op()
     
     def vcpop_m(self, xd, op1, masked = False):
-        xd, op1, mask = self._init_ops_sca(xd, op1, 'm', 'u', masked)
+        xd, op1, mask = self._init_ops_uni(xd, op1, 'xm', 'xu', masked)
         xd[:] = np.count_nonzero(self.vm_to_bools(op1) & mask)
         self._post_op()
     

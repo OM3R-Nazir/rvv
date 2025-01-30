@@ -69,21 +69,21 @@ class BaseRVV:
         self._pvd = {'optype': optypes[0], 'val': vops[0], 'op' : ops[0], 'mask': mask}
         return vops
     
-    def _init_ops_zero(self, vd, optypes, viewtypes, masked):
+    def _init_ops_zero(self, od, optypes, viewtypes, masked):
         self._debug_operation()
-        return self._init_ops_generic([vd], optypes, viewtypes, masked)
+        return self._init_ops_generic([od], optypes, viewtypes, masked)
     
-    def _init_ops_uni(self, vd, op1, optypes, viewtypes, masked):
+    def _init_ops_uni(self, od, op1, optypes, viewtypes, masked):
         self._debug_operation()
-        return self._init_ops_generic([vd, op1], optypes, viewtypes, masked)
+        return self._init_ops_generic([od, op1], optypes, viewtypes, masked)
     
-    def _init_ops(self, vd, op1, op2, optypes, viewtypes, masked):
+    def _init_ops(self, od, op1, op2, optypes, viewtypes, masked):
         self._debug_operation()
-        return self._init_ops_generic([vd, op1, op2], optypes, viewtypes, masked)
+        return self._init_ops_generic([od, op1, op2], optypes, viewtypes, masked)
 
-    def _init_ops_tri(self, vd, op1, op2, op3, optypes, viewtype, masked):
+    def _init_ops_tri(self, od, op1, op2, op3, optypes, viewtype, masked):
         self._debug_operation()
-        return self._init_ops_generic([vd, op1, op2, op3], optypes, viewtype, masked)
+        return self._init_ops_generic([od, op1, op2, op3], optypes, viewtype, masked)
     
     def _init_ops_ext(self, vd, op1, optype, signed, masked):
         self._debug_operation()
@@ -129,37 +129,9 @@ class BaseRVV:
         
         return vvd, vop1, mask
     
-    def _init_ops_sca(self, xd, op, optype, viewtype, masked):
-        self._debug_operation()
-        xxd = self.SRF[xd]
-        vop = self._initer(op, optype, viewtype)
-        
-        self._debug_val('x', 'd', xxd, xd)
-        self._debug_print(f"{'-'*30}")
-        self._debug_val(optype, f'op1', vop, op)
-        
-        # Generate Mask
-        if masked:
-            if op == 0 and optype != 'x':
-                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
-            mask = self.vm_to_bools(self.vecm(0))
-        else:
-            mask = np.ones(self.VL, dtype=np.bool_)
-        
-        # Debug Mask
-        self._debug_mask(mask, masked)
-        
-        # Post Operation Flag:
-        self._pvd = {'optype': 'x', 'op': xd, 'val': xxd, 'mask': mask}
-        return xxd, vop, mask
-    
     def _post_op(self):
-        if self._pvd['optype'] == 'x':
-            if self.debug:
-                self._debug_val(self._pvd['optype'], 'd', self._pvd['val'], self._pvd['op'])
-        else:
-            if self.debug:
-                self._debug_val(self._pvd['optype'], 'd', self._pvd['val'], self._pvd['op'])
+        if self.debug:
+            self._debug_val(self._pvd['optype'], 'd', self._pvd['val'], self._pvd['op'])
     
     def _debug_val(self, optype, opname, val, op=None):
         if self.debug:
@@ -285,8 +257,10 @@ class BaseRVV:
     
     def sreg(self, xi, viewtype='u'):
         regfile = self.FRF if viewtype == 'f' else self.SRF
+        if viewtype == '_': return regfile[xi]
         viewtype = self._get_viewtype(viewtype)
         return viewtype(regfile[xi])[0]
+    
     
     def vsetvli(self, avl, e, m) -> None:
         
