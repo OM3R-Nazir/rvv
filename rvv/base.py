@@ -257,7 +257,7 @@ class BaseRVV:
     
     def sreg(self, xi, viewtype='u'):
         regfile = self.FRF if viewtype == 'f' else self.SRF
-        if viewtype == '_': return regfile[xi]
+        if viewtype == 'x': return regfile[xi]
         viewtype = self._get_viewtype(viewtype)
         return viewtype(regfile[xi])[0]
     
