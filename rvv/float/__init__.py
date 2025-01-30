@@ -6,5 +6,4 @@ from rvv.float.fmuladd import FMulAdd
 from rvv.float.fmisc import FMisc
 
 class RVVFloat(FOpsBasic, FCompare, FWiden, FMulAdd, FMisc):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    pass

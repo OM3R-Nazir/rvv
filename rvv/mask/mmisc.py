@@ -2,8 +2,6 @@ from rvv.base import BaseRVV
 import numpy as np
 
 class MMisc(BaseRVV):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
     
     def vfirst_m(self, xd, op1, masked = False):
         xd, op1, mask = self._init_ops_uni(xd, op1, 'xm', 'xu', masked)

@@ -1,8 +1,6 @@
 from rvv.base import BaseRVV
 
 class FCompare(BaseRVV):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         
     def vmfeq_vv(self, vd, op1, op2, masked=False):
         vmvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'mvv', 'fff', masked)

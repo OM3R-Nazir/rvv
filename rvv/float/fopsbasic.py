@@ -1,8 +1,6 @@
 from rvv.base import BaseRVV
 
 class FOpsBasic(BaseRVV):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         
     def vfadd_vv(self, vd, op1, op2, masked=False):
         vd, op1, op2, masked = self._init_ops(vd, op1, op2, 'vvv', 'fff', masked)

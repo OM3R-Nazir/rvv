@@ -1,8 +1,6 @@
 from rvv.base import BaseRVV
 
 class FWiden(BaseRVV):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
     
     def vfwadd_vv(self, vd, op1, op2, masked=False):
         vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'wvv', 'fff', masked)
