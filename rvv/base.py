@@ -34,6 +34,8 @@ class BaseRVV:
     def _initer(self, op, optype, viewtype):
         if optype == 'v': return self.vec(op, viewtype)
         elif optype == 'w': return self.vecw(op, viewtype)
+        elif optype == 's': return self.vecs(op, viewtype)
+        elif optype == 'd': return self.vecd(op, viewtype)
         elif optype == 'x': return self.sreg(op, viewtype)
         elif optype == 'm': return self.vecm(op)
         else: raise ValueError(f"Invalid Operand Type {optype}")
@@ -137,7 +139,7 @@ class BaseRVV:
         if self.debug:
             if optype == 'x':
                 print(f"{optype + opname:>5} {optype:>2}{op:02}: ", val)
-            elif optype == 'v' or optype == 'w':
+            elif optype in ['v','w','s','d']:
                 print(f"{optype + opname:>5} {optype:>2}{op:02}: ", val)
             elif optype == 'm':
                 optype = 'vm'
@@ -215,14 +217,14 @@ class BaseRVV:
         vmd[:] = self.bools_to_vm(vmdb)
         return vmd
     
-    def _get_viewtype(self, viewtype):
+    def _get_viewtype(self, viewtype, SEW):
         
-        if viewtype == 'u': return self.SEW.udtype
-        elif viewtype == 's': return self.SEW.idtype
+        if viewtype == 'u': return SEW.udtype
+        elif viewtype == 's': return SEW.idtype
         elif viewtype == 'f': 
-            if self.SEW.SEW not in self._valid_fsews: 
-                raise ValueError(f"Invalid SEW {self.SEW.SEW} for viewtype 'f'")
-            return self.SEW.fdtype
+            if SEW.SEW not in self._valid_fsews: 
+                raise ValueError(f"Invalid SEW {SEW.SEW} for viewtype 'f'")
+            return SEW.fdtype
         
         else: raise ValueError(f"Invalid Viewtype {viewtype}")
     
@@ -233,20 +235,45 @@ class BaseRVV:
                 
         start = vi * self.VLENB
         end = start + self.VL * self.SEW.SEW // 8
-        viewtype = self._get_viewtype(viewtype)
+        viewtype = self._get_viewtype(viewtype, self.SEW)
         
         return self.VRF[start:end].view(viewtype)
     
     def vecw(self, vi, viewtype='u'):
         LMUL = self.LMUL + 1
-        SEW = self.SEW.get_higher_sew()
+        SEW = self.WSEW
 
         if vi % LMUL != 0:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
             
         start = vi * self.VLENB
         end = start + self.VL * SEW.SEW // 8
-        viewtype = self._get_viewtype(viewtype)
+        viewtype = self._get_viewtype(viewtype, SEW)
+
+        return self.VRF[start:end].view(viewtype)
+    
+    def vecs(self, vi, viewtype='u'):
+        LMUL = 1
+
+        if vi % LMUL != 0:
+            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
+            
+        start = vi * self.VLENB
+        end = start + self.VL * self.SEW.SEW // 8
+        viewtype = self._get_viewtype(viewtype, self.SEW)
+
+        return self.VRF[start:end].view(viewtype)
+    
+    def vecd(self, vi, viewtype='u'):
+        LMUL = 1
+        SEW = self.WSEW
+
+        if vi % LMUL != 0:
+            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
+            
+        start = vi * self.VLENB
+        end = start + self.VL * SEW.SEW // 8
+        viewtype = self._get_viewtype(viewtype, SEW)
 
         return self.VRF[start:end].view(viewtype)
     
@@ -258,7 +285,7 @@ class BaseRVV:
     def sreg(self, xi, viewtype='u'):
         regfile = self.FRF if viewtype == 'f' else self.SRF
         if viewtype == 'x': return regfile[xi]
-        viewtype = self._get_viewtype(viewtype)
+        viewtype = self._get_viewtype(viewtype, self.SEW)
         return viewtype(regfile[xi])[0]
     
     
