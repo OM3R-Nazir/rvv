@@ -9,7 +9,7 @@ class FMisc(BaseRVV):
         self._post_op()
     
     def vfmin_vf(self, vd, op1, op2, masked=False):
-        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'fff', masked)
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvf', 'fff', masked)
         vvd[mask] = np.minimum(vop1, xop2)[mask]
         self._post_op()
     
@@ -19,7 +19,7 @@ class FMisc(BaseRVV):
         self._post_op()
     
     def vfmax_vf(self, vd, op1, op2, masked=False):
-        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'fff', masked)
+        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvf', 'fff', masked)
         vvd[mask] = np.maximum(vop1, xop2)[mask]
         self._post_op()
     

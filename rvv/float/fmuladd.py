@@ -8,7 +8,7 @@ class FMulAdd(BaseRVV):
         self._post_op()
     
     def vfmacc_vf(self, vd, op1, op2, masked=False):
-        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vxv', 'fff', masked)
+        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vfv', 'fff', masked)
         vvd[mask] = ((fop1 * vop2) + vvd)[mask]
         self._post_op()
     
@@ -18,7 +18,7 @@ class FMulAdd(BaseRVV):
         self._post_op()
         
     def vfnmacc_vf(self, vd, op1, op2, masked=False):
-        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vxv', 'fff', masked)
+        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vfv', 'fff', masked)
         vvd[mask] = (-(fop1 * vop2) - vvd)[mask]
         self._post_op()
     
@@ -28,7 +28,7 @@ class FMulAdd(BaseRVV):
         self._post_op()
         
     def vfmsac_vf(self, vd, op1, op2, masked=False):
-        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vxv', 'fff', masked)
+        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vfv', 'fff', masked)
         vvd[mask] = ((fop1 * vop2) - vvd)[mask]
         self._post_op()
     
@@ -38,7 +38,7 @@ class FMulAdd(BaseRVV):
         self._post_op()
     
     def vfnmsac_vf(self, vd, op1, op2, masked=False):
-        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vxv', 'fff', masked)
+        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vfv', 'fff', masked)
         vvd[mask] = (-(fop1 * vop2) + vvd)[mask]
         self._post_op()
     
@@ -48,7 +48,7 @@ class FMulAdd(BaseRVV):
         self._post_op()
     
     def vfmadd_vf(self, vd, op1, op2, masked=False):
-        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vxv', 'fff', masked)
+        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vfv', 'fff', masked)
         vvd[mask] = ((vvd * fop1) + vop2)[mask]
         self._post_op()
     
@@ -58,7 +58,7 @@ class FMulAdd(BaseRVV):
         self._post_op()
     
     def vfnmadd_vf(self, vd, op1, op2, masked=False):
-        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vxv', 'fff', masked)
+        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vfv', 'fff', masked)
         vvd[mask] = (-(vvd * fop1) - vop2)[mask]
         self._post_op()
     
@@ -68,7 +68,7 @@ class FMulAdd(BaseRVV):
         self._post_op()
     
     def vfmsub_vf(self, vd, op1, op2, masked=False):
-        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vxv', 'fff', masked)
+        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vfv', 'fff', masked)
         vvd[mask] = ((vvd * fop1) - vop2)[mask]
         self._post_op()
     
@@ -78,6 +78,6 @@ class FMulAdd(BaseRVV):
         self._post_op()
     
     def vfnmsub_vf(self, vd, op1, op2, masked=False):
-        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vxv', 'fff', masked)
+        vvd, fop1, vop2, mask = self._init_ops(vd, op1, op2, 'vfv', 'fff', masked)
         vvd[mask] = (-(vvd * fop1) + vop2)[mask]
         self._post_op()

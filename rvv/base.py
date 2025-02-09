@@ -37,6 +37,7 @@ class BaseRVV:
         elif optype == 's': return self.vecs(op, viewtype)
         elif optype == 'd': return self.vecd(op, viewtype)
         elif optype == 'x': return self.sreg(op, viewtype)
+        elif optype == 'f': return self.freg(op, viewtype)
         elif optype == 'm': return self.vecm(op)
         else: raise ValueError(f"Invalid Operand Type {optype}")
     
@@ -228,6 +229,17 @@ class BaseRVV:
         
         else: raise ValueError(f"Invalid Viewtype {viewtype}")
     
+    def full_vec(self, vi, viewtype='u'):
+        
+        if vi % self.LMUL != 0:
+            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {self.LMUL}")
+                
+        start = vi * self.VLENB
+        end = start + self.VLMAX * self.SEW.SEW // 8
+        viewtype = self._get_viewtype(viewtype, self.SEW)
+        
+        return self.VRF[start:end].view(viewtype)
+    
     def vec(self, vi, viewtype='u'):
         
         if vi % self.LMUL != 0:
@@ -283,11 +295,14 @@ class BaseRVV:
         return self.VRF[start:end].view(np.uint8)
     
     def sreg(self, xi, viewtype='u'):
-        regfile = self.FRF if viewtype == 'f' else self.SRF
-        if viewtype == 'x': return regfile[xi]
+        if viewtype == 'x': return self.SRF[xi]
         viewtype = self._get_viewtype(viewtype, self.SEW)
-        return viewtype(regfile[xi])[0]
+        return viewtype(self.SRF[xi])
     
+    def freg(self, xi, viewtype='f'):
+        if viewtype == 'x': return self.FRF[xi]
+        viewtype = self._get_viewtype(viewtype, self.SEW)
+        return viewtype(self.FRF[xi])
     
     def vsetvli(self, avl, e, m) -> None:
         
