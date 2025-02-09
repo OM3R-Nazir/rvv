@@ -4,8 +4,9 @@ from rvv.fold import RVVFold
 from rvv.mask import RVVMask
 from rvv.bitwise import RVVBitwise
 from rvv.permutation import RVVPermutation
+from rvv.initialize import RVVInitialize
 
-class RVV(RVVInteger, RVVFloat, RVVFold, RVVMask, RVVBitwise, RVVPermutation):
+class RVV(RVVInteger, RVVFloat, RVVFold, RVVMask, RVVBitwise, RVVPermutation, RVVInitialize):
     def __init__(self, VLEN: int = 2048, debug = False, debug_vb_as_v = False):
         super().__init__(VLEN, debug, debug_vb_as_v)
 
