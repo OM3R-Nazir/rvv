@@ -18,6 +18,7 @@ class BaseRVV:
         self.LMUL : int = None
         self.VL : int = None
         self.VLMAX : int = None
+        self.VXRM : VXRM = VXRM
         self._valid_sews : list[int] = [8, 16, 32, 64]
         self._valid_lmuls : list[int] = [1, 2, 4, 8]
         self._valid_fsews : list[int] = [32, 64]
@@ -48,36 +49,40 @@ class BaseRVV:
         elif optype == 'm': return self.vecm(op)
         else: raise ValueError(f"Invalid Operand Type {optype}")
     
+    def _get_mask(self, vops, masked):
+        if not masked:
+            return np.ones(self.VL, dtype=np.bool_)
+            
+        if 0 in vops:
+            raise ValueError("Cannot use V0 for as op in Masked Operation")
+        
+        return self.vm_to_bools(self.vecm(0))
+    
     def _init_ops_generic(self, ops, optypes, viewtypes, masked):        
         # Initialize all operands
-        vops = []
+        op_values = []
         for op, optype, viewtype in zip(ops, optypes, viewtypes):
-            vop = self._initer(op, optype, viewtype)
-            vops.append(vop)
+            op_value = self._initer(op, optype, viewtype)
+            op_values.append(op_value)
         
         # Debug all ops
-        for i, (vop, op, optype) in enumerate(list(zip(vops, ops, optypes))):
+        for i, (op_value, op, optype) in enumerate(list(zip(op_values, ops, optypes))):
             if i == 0:
-                self._debug_val(optype, 'd', vop, op)
+                self._debug_val(optype, 'd', op_value, op)
                 self._debug_print(f"{'-'*30}")
             else:  
-                self._debug_val(optype, f'op{i}', vop, op)
+                self._debug_val(optype, f'op{i}', op_value, op)
             
-        # Generate Mask
-        if masked:
-            vector_ops = [ops[i] for i in range(len(ops)) if optypes[i] != 'x']
-            if 0 in vector_ops:
-                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
-            mask = self.vm_to_bools(self.vecm(0))
-        else:
-            mask = np.ones(self.VL, dtype=np.bool_)
+        vector_ops = [ops[i] for i in range(len(ops)) if optypes[i] != 'x']
+        mask = self._get_mask(vector_ops, masked)
         
         # Debug Mask
         self._debug_mask(mask, masked)
-        vops.append(mask)
+        op_values.append(mask)
+        
         # Post Operation Flag:
-        self._pvd = {'optype': optypes[0], 'val': vops[0], 'op' : ops[0], 'mask': mask}
-        return vops
+        self._pvd = {'optype': optypes[0], 'val': op_values[0], 'op' : ops[0], 'mask': mask}
+        return op_values
     
     def _init_ops_zero(self, od, optypes, viewtypes, masked):
         self._debug_operation()
@@ -110,34 +115,29 @@ class BaseRVV:
         
         viewtype = 's' if signed else 'u'
         vvd = self.vec(vd, viewtype)
-        vop1 = self.vec(op1, viewtype)
+        op1_value = self.vec(op1, viewtype)
         
         if signed:
-            vop1 = vop1.view(op1_sew.idtype)
+            op1_value = op1_value.view(op1_sew.idtype)
         else:
-            vop1 = vop1.view(op1_sew.udtype)
+            op1_value = op1_value.view(op1_sew.udtype)
         
-        vop1 = vop1[:self.VL]
+        op1_value = op1_value[:self.VL]
         
         ops = [vd, op1]
         vector_ops = [ops[i] for i in range(2) if optype[i] != 'x']
         
-        if masked:
-            if 0 in vector_ops:
-                raise ValueError("Invalid Vector Register Number 0 for Masked Operation")
-            mask = self.vm_to_bools(self.vecm(0))
-        else:
-            mask = np.ones(self.VL, dtype=np.bool_)
+        mask = self._get_mask(vector_ops, masked)
         
         self._debug_val('v', 'd', vvd, vd)
         self._debug_print(f"{'-'*30}")
-        self._debug_val('v', 'op1', vop1, op1)
+        self._debug_val('v', 'op1', op1_value, op1)
         self._debug_mask(mask, masked)
         
         # Post Operation VD:
         self._pvd = {'optype': 'v', 'val': vvd, 'op' : vd}
         
-        return vvd, vop1, mask
+        return vvd, op1_value, mask
     
     def _post_op(self):
         if self.debug:
@@ -325,8 +325,6 @@ class BaseRVV:
         divider = 1 << shift
         val /= divider
         return self.vxrm_rounding(val, vxrm)
-        
-        
         
     def vsetvli(self, avl, e, m) -> None:
         

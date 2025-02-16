@@ -1,6 +1,6 @@
 from rvv.base import BaseRVV
 
-class Saturating(BaseRVV):
+class FixedPoint(BaseRVV):
     
     ##
     ## Saturating Addition
@@ -188,6 +188,10 @@ class Saturating(BaseRVV):
             if mask[i]:
                 vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEW.SEW - 1) & int(xop2), vxrm))
         self._post_op()
+    
+    ##
+    ## Right Shift
+    ##
     
     def vssra_vv(self, vd, op1, op2, vxrm, masked=False):
         vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'sss', masked)
