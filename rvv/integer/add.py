@@ -15,46 +15,6 @@ class ADD(BaseRVV):
         vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'uuu', masked)
         vvd[mask] = (vop1 + xop2)[mask]
         self._post_op()
-        
-    ##
-    ## Saturating
-    ##
-
-    def vsadd_vv(self, vd, op1, op2, masked=False):
-        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'sss', masked)
-
-        for i in range(self.VL):
-            if mask[i]:
-                vvd[i] = self._iclip(int(vop1[i]) + int(vop2[i]))
-            
-        self._post_op()
-
-    def vsadd_vx(self, vd, op1, op2, masked=False):
-        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'sss', masked)
-        
-        for i in range(self.VL):
-            if mask[i]:
-                vvd[i] = self._iclip(int(vop1[i]) + int(xop2))
-        
-        self._post_op()
-
-    def vsaddu_vv(self, vd, op1, op2, masked=False):
-        vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'uuu', masked)
-
-        for i in range(self.VL):
-            if mask[i]:
-                vvd[i] = self._uclip(int(vop1[i]) + int(vop2[i]))
-            
-        self._post_op()
-
-    def vsaddu_vx(self, vd, op1, op2, masked=False):
-        vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'uuu', masked)
-        
-        for i in range(self.VL):
-            if mask[i]:
-                vvd[i] = self._uclip(int(vop1[i]) + int(xop2))
-        
-        self._post_op()
 
     ##
     ## Widening

@@ -1,6 +1,13 @@
 import numpy as np
 from rvv.utils.sew import SEWC
 import inspect
+from enum import Enum
+
+class VXRM(Enum):
+    RNE = 0
+    RTZ = 1
+    RDN = 2
+    RUP = 3
 
 class BaseRVV:
     
@@ -304,6 +311,23 @@ class BaseRVV:
         viewtype = self._get_viewtype(viewtype, self.SEW)
         return viewtype(self.FRF[xi])
     
+    def vxrm_rounding(self, val, vxrm):
+        if vxrm == VXRM.RNE:
+            return int(np.round(val))
+        elif vxrm == VXRM.RTZ:
+            return int(np.trunc(val))
+        elif vxrm == VXRM.RDN:
+            return int(np.floor(val))
+        elif vxrm == VXRM.RUP:
+            return int(np.ceil(val))
+    
+    def vxrm_right_shift(self, val, shift, vxrm):
+        divider = 1 << shift
+        val /= divider
+        return self.vxrm_rounding(val, vxrm)
+        
+        
+        
     def vsetvli(self, avl, e, m) -> None:
         
         if e not in self._valid_sews:
