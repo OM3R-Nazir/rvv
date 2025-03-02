@@ -1,8 +1,7 @@
 import numpy as np
-from rvv.utils.sew import SEWC
+from utils.sew import SEWC
 import inspect
 from enum import Enum
-
 
 class BaseRVV:
     
