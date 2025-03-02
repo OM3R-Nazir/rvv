@@ -3,14 +3,15 @@ from rvv.utils.sew import SEWC
 import inspect
 from enum import Enum
 
-class VXRM(Enum):
-    RNE = 0
-    RTZ = 1
-    RDN = 2
-    RUP = 3
 
 class BaseRVV:
     
+    class VXRM(Enum):
+        RNE = 0
+        RTZ = 1
+        RDN = 2
+        RUP = 3
+        
     def __init__(self, VLEN: int = 2048, debug = False, debug_vb_as_v = False) -> None:
         self.VLEN : int = VLEN
         self.VLENB : int = VLEN // 8
@@ -18,7 +19,6 @@ class BaseRVV:
         self.LMUL : int = None
         self.VL : int = None
         self.VLMAX : int = None
-        self.VXRM : VXRM = VXRM
         self._valid_sews : list[int] = [8, 16, 32, 64]
         self._valid_lmuls : list[int] = [1, 2, 4, 8]
         self._valid_fsews : list[int] = [32, 64]
@@ -312,13 +312,13 @@ class BaseRVV:
         return viewtype(self.FRF[xi])
     
     def vxrm_rounding(self, val, vxrm):
-        if vxrm == VXRM.RNE:
+        if vxrm == self.VXRM.RNE:
             return int(np.round(val))
-        elif vxrm == VXRM.RTZ:
+        elif vxrm == self.VXRM.RTZ:
             return int(np.trunc(val))
-        elif vxrm == VXRM.RDN:
+        elif vxrm == self.VXRM.RDN:
             return int(np.floor(val))
-        elif vxrm == VXRM.RUP:
+        elif vxrm == self.VXRM.RUP:
             return int(np.ceil(val))
     
     def vxrm_right_shift(self, val, shift, vxrm):
