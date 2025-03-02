@@ -32,6 +32,7 @@ class LoadStore(BaseRVV):
         mask = self._get_mask([vd], masked)
         
         self._debug_val('v', 'd', vvd, vd)
+        self._debug_mask(mask, masked)
         self._debug_print(f"{'-'*30}")
         
         vvd[mask] = vector[mask]
@@ -59,6 +60,7 @@ class LoadStore(BaseRVV):
         mask = self._get_mask([vd], masked)
         
         self._debug_val('v', 'd', vvd, vd)
+        self._debug_mask(mask, masked)
         self._debug_print(f"{'-'*30}")
         
         if bstride == sew_bytes:

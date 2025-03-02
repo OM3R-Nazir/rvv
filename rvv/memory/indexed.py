@@ -17,6 +17,7 @@ class Indexed(BaseRVV):
         
         self._debug_val('v', 'd', vvd, vd)
         self._debug_val('v', 'i', vvindex, vindex)
+        self._debug_mask(mask, masked)
         self._debug_print(f"{'-'*30}")
         
         np_memory = np_memory.view(np.uint8)
@@ -36,6 +37,7 @@ class Indexed(BaseRVV):
         
         self._debug_val('v', 'd', vvd, vd)
         self._debug_val('v', 'i', vvindex, vindex)
+        self._debug_mask(mask, masked)
         self._debug_print(f"{'-'*30}")
         
         np_memory = np_memory.view(self.SEW.udtype)
