@@ -19,9 +19,12 @@ class BaseRVV:
         self.LMUL : int = None
         self.VL : int = None
         self.VLMAX : int = None
+        
         self._valid_sews : list[int] = [8, 16, 32, 64]
         self._valid_lmuls : list[int] = [1, 2, 4, 8]
         self._valid_fsews : list[int] = [32, 64]
+        
+        self._extensions : list[str] = ["Base"]
         
         self.VRF : np.ndarray = np.zeros(self.VLENB * 32, dtype=np.uint8)
         self.SRF : list[np.uint64]  = [np.array([0], dtype=np.uint64)  for _ in range(32)]
@@ -145,9 +148,7 @@ class BaseRVV:
     
     def _debug_val(self, optype, opname, val, op=None):
         if self.debug:
-            if optype == 'x':
-                print(f"{optype + opname:>5} {optype:>2}{op:02}: ", val)
-            elif optype in ['v','w','s','d']:
+            if optype in ['v','w','s','d','x','f']:
                 print(f"{optype + opname:>5} {optype:>2}{op:02}: ", val)
             elif optype == 'm':
                 optype = 'vm'
@@ -231,7 +232,7 @@ class BaseRVV:
         elif viewtype == 's': return SEW.idtype
         elif viewtype == 'f': 
             if SEW.SEW not in self._valid_fsews: 
-                raise ValueError(f"Invalid SEW {SEW.SEW} for viewtype 'f'")
+                raise ValueError(f"Invalid SEW {SEW.SEW} for dtype 'f'. Add ZVFH extension")
             return SEW.fdtype
         
         else: raise ValueError(f"Invalid Viewtype {viewtype}")
