@@ -1,13 +1,13 @@
-from rvv.integer import RVVInteger
-from rvv.float import RVVFloat
-from rvv.fold import RVVFold
-from rvv.mask import RVVMask
-from rvv.bitwise import RVVBitwise
-from rvv.memory import RVVMemory
-from rvv.permutation import RVVPermutation
-from rvv.initialize import RVVInitialize
-from rvv.conversion import RVVConversion
-from rvv.fixedpoint import RVVFixed
+from rvv.functions.integer import RVVInteger
+from rvv.functions.float import RVVFloat
+from rvv.functions.fold import RVVFold
+from rvv.functions.mask import RVVMask
+from rvv.functions.bitwise import RVVBitwise
+from rvv.functions.memory import RVVMemory
+from rvv.functions.permutation import RVVPermutation
+from rvv.functions.initialize import RVVInitialize
+from rvv.functions.conversion import RVVConversion
+from rvv.functions.fixedpoint import RVVFixed
 
 
 class RVV(RVVInteger, RVVFloat, RVVFold, RVVMask, RVVBitwise, RVVMemory,
