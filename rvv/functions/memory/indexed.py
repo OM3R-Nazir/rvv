@@ -6,12 +6,12 @@ class Indexed(BaseRVV):
     def __get_vindex(self, vi, sew):
         start = vi * self.VLENB
         end = start + self.VL * sew // 8
-        return self.VRF[start:end].view(f"uint{sew}")
+        return self._VRF[start:end].view(f"uint{sew}")
     
     def __vloxei(self, isew, vd, vindex, np_memory, np_memory_offset, masked=False):
         self._debug_operation()
         
-        vvd = self.vec(vd)
+        vvd = self._vec(vd)
         mask = self._get_mask([vd, vindex], masked)
         vvindex = self.__get_vindex(vindex, isew)
         
@@ -24,14 +24,14 @@ class Indexed(BaseRVV):
         for i in range(self.VL):
             if mask[i]:
                 ptr = vvindex[i] + np_memory_offset
-                vvd[i] = np_memory[ptr:ptr + self.SEWC.SEW // 8].view(self.SEWC.udtype)[0]
+                vvd[i] = np_memory[ptr:ptr + self._SEWC.SEW // 8].view(self._SEWC.udtype)[0]
         
         self._debug_val('v', 'd', vvd, vd)
     
     def __vsoxei(self, isew, vd, vindex, np_memory, np_memory_offset, masked=False):
         self._debug_operation()
         
-        vvd = self.vec(vd)
+        vvd = self._vec(vd)
         mask = self._get_mask([vd, vindex], masked)
         vvindex = self.__get_vindex(vindex, isew)
         
@@ -40,10 +40,10 @@ class Indexed(BaseRVV):
         self._debug_mask(mask, masked)
         self._debug_print(f"{'-'*30}")
         
-        np_memory = np_memory.view(self.SEWC.udtype)
+        np_memory = np_memory.view(self._SEWC.udtype)
         for i in range(self.VL):
             if mask[i]:
-                ptr = (vvindex[i] + np_memory_offset) * 8 // self.SEWC.SEW
+                ptr = (vvindex[i] + np_memory_offset) * 8 // self._SEWC.SEW
                 np_memory[ptr] = vvd[i]
         
     def vloxei8_v(self, vd, vindex, np_memory, np_memory_offset, masked=False):

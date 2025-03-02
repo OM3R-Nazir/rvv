@@ -24,7 +24,7 @@ class CARRY(BaseRVV):
         vmvd, vop1, vop2, mask = self._init_ops(vmd, op1, op2, 'mvv', 'uuu', False)
         vmvd_b = self.vm_to_bools(vmvd)
         for i in range(self.VL):
-            vmvd_b[i] = (int(vop1[i]) + int(vop2[i])) > self.SEWC.umax
+            vmvd_b[i] = (int(vop1[i]) + int(vop2[i])) > self._SEWC.umax
         vmvd[:] = self.bools_to_vm(vmvd_b)
         self._post_op()
     
@@ -32,7 +32,7 @@ class CARRY(BaseRVV):
         vmvd, vop1, xop2, mask = self._init_ops(vmd, op1, op2, 'mvx', 'uuu', False)
         vmvd_b = self.vm_to_bools(vmvd)
         for i in range(self.VL):
-            vmvd_b[i] = (int(vop1[i]) + int(xop2)) > self.SEWC.umax
+            vmvd_b[i] = (int(vop1[i]) + int(xop2)) > self._SEWC.umax
         vmvd[:] = self.bools_to_vm(vmvd_b)
         self._post_op()
     
@@ -41,7 +41,7 @@ class CARRY(BaseRVV):
         vmvd_b = self.vm_to_bools(vmvd)
         carryin = self.vm_to_bools(carryin)
         for i in range(self.VL):
-            vmvd_b[i] = (int(vop1[i]) + int(vop2[i]) + carryin[i]) > self.SEWC.umax
+            vmvd_b[i] = (int(vop1[i]) + int(vop2[i]) + carryin[i]) > self._SEWC.umax
         vmvd[:] = self.bools_to_vm(vmvd_b)
         self._post_op()
     
@@ -50,7 +50,7 @@ class CARRY(BaseRVV):
         vmvd_b = self.vm_to_bools(vmvd)
         carryin = self.vm_to_bools(carryin)
         for i in range(self.VL):
-            vmvd_b[i] = (int(vop1[i]) + int(xop2) + carryin[i]) > self.SEWC.umax
+            vmvd_b[i] = (int(vop1[i]) + int(xop2) + carryin[i]) > self._SEWC.umax
         vmvd[:] = self.bools_to_vm(vmvd_b)
         self._post_op()
         

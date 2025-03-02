@@ -31,11 +31,11 @@ class Permutation(BaseRVV):
     
     def vslidedown_vx(self, vd, vop1, offset, masked = False):
         vd, offset, mask = self._init_ops_uni(vd, offset, 'vx', 'uu', masked)
-        vop1 = self.full_vec(vop1, viewtype='u')
+        vop1 = self._full_vec(vop1, viewtype='u')
         offset = min(offset, self.VL)
         
         vop1 = vop1[offset:]
-        vop1 = np.concatenate((vop1, np.zeros(self.VLMAX - offset, dtype=self.SEWC.udtype)))
+        vop1 = np.concatenate((vop1, np.zeros(self.VLMAX - offset, dtype=self._SEWC.udtype)))
         vop1 = vop1[:self.VL]
         
         vd[mask] = vop1[mask]

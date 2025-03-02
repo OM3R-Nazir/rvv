@@ -14,80 +14,80 @@ class Conversion(BaseRVV):
     
     def vncvt_x_x_w(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vw', 'ss', masked)
-        vd[mask] = self.SEWC.idtype(vsrc[mask])
+        vd[mask] = self._SEWC.idtype(vsrc[mask])
         self._post_op()
     
     def vncvtu_x_x_w(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vw', 'uu', masked)
-        vd[mask] = self.SEWC.udtype(vsrc[mask])
+        vd[mask] = self._SEWC.udtype(vsrc[mask])
         self._post_op()
     
     def vfwcvt_f_f_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'ff', masked)
-        vd[mask] = self.WSEW.fdtype(vsrc[mask])
+        vd[mask] = self._WSEW.fdtype(vsrc[mask])
         self._post_op()
         
     def vfncvt_f_f_w(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vw', 'ff', masked)
-        vd[mask] = self.SEWC.fdtype(vsrc[mask])
+        vd[mask] = self._SEWC.fdtype(vsrc[mask])
         self._post_op()
         
     def vfcvt_f_x_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vv', 'fs', masked)
-        vd[mask] = self.SEWC.fdtype(vsrc[mask])
+        vd[mask] = self._SEWC.fdtype(vsrc[mask])
         self._post_op()
     
     def vfcvt_f_xu_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vv', 'fu', masked)
-        vd[mask] = self.SEWC.fdtype(vsrc[mask])
+        vd[mask] = self._SEWC.fdtype(vsrc[mask])
         self._post_op()
     
     def vfncvt_f_x_w(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vw', 'fs', masked)
-        vd[mask] = self.SEWC.fdtype(vsrc[mask])
+        vd[mask] = self._SEWC.fdtype(vsrc[mask])
         self._post_op()
     
     def vfncvt_f_xu_w(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vw', 'fu', masked)
-        vd[mask] = self.SEWC.fdtype(vsrc[mask])
+        vd[mask] = self._SEWC.fdtype(vsrc[mask])
         self._post_op()
     
     def vfwcvt_f_x_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'fs', masked)
-        vd[mask] = self.WSEW.fdtype(vsrc[mask])
+        vd[mask] = self._WSEW.fdtype(vsrc[mask])
         self._post_op()
     
     def vfwcvt_f_xu_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'fu', masked)
-        vd[mask] = self.WSEW.fdtype(vsrc[mask])
+        vd[mask] = self._WSEW.fdtype(vsrc[mask])
         self._post_op()
         
     def vfcvt_x_f_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vv', 'sf', masked)
-        vd[mask] = self.SEWC.idtype(vsrc[mask])
+        vd[mask] = self._SEWC.idtype(vsrc[mask])
         self._post_op()
         
     def vfcvt_xu_f_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vv', 'uf', masked)
-        vd[mask] = self.SEWC.udtype(vsrc[mask])
+        vd[mask] = self._SEWC.udtype(vsrc[mask])
         self._post_op()
     
     def vfncvt_x_f_w(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vw', 'sf', masked)
-        vd[mask] = self.SEWC.idtype(vsrc[mask])
+        vd[mask] = self._SEWC.idtype(vsrc[mask])
         self._post_op()
     
     def vfncvt_xu_f_w(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'vw', 'uf', masked)
-        vd[mask] = self.SEWC.udtype(vsrc[mask])
+        vd[mask] = self._SEWC.udtype(vsrc[mask])
         self._post_op()
     
     def vfwcvt_x_f_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'sf', masked)
-        vd[mask] = self.WSEW.idtype(vsrc[mask])
+        vd[mask] = self._WSEW.idtype(vsrc[mask])
         self._post_op()
     
     def vfwcvt_xu_f_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'uf', masked)
-        vd[mask] = self.WSEW.udtype(vsrc[mask])
+        vd[mask] = self._WSEW.udtype(vsrc[mask])
         self._post_op()

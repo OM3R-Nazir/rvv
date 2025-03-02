@@ -27,7 +27,7 @@ class LoadStore(BaseRVV):
                 vector[i:i + sew_bytes] = np_memory[start:start + sew_bytes]
         
         
-        vvd = self.vec(vd)
+        vvd = self._vec(vd)
         vector = vector.view(f"uint{sew}")
         mask = self._get_mask([vd], masked)
         
@@ -56,7 +56,7 @@ class LoadStore(BaseRVV):
             raise ValueError("Size of np_memory is too small")
         
         np_memory = np_memory.view(f"uint{sew}")
-        vvd = self.vec(vd).view(f"uint{sew}")
+        vvd = self._vec(vd).view(f"uint{sew}")
         mask = self._get_mask([vd], masked)
         
         self._debug_val('v', 'd', vvd, vd)
@@ -176,7 +176,7 @@ class LoadStore(BaseRVV):
         self.__debug_m()
         np_memory = np_memory.view(np.uint8)
         
-        vvd = self.vecm(vd).view(np.uint8)
+        vvd = self._vecm(vd).view(np.uint8)
         
         self._debug_val('m', 'd', vvd, vd)
         self._debug_print(f"{'-'*30}")
@@ -190,7 +190,7 @@ class LoadStore(BaseRVV):
         
         np_memory = np_memory.view(np.uint8)
         
-        vvd = self.vecm(vd).view(np.uint8)
+        vvd = self._vecm(vd).view(np.uint8)
         
         self._debug_val('m', 'd', vvd, vd)
         self._debug_print(f"{'-'*30}")
