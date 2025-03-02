@@ -4,7 +4,6 @@ import inspect
 from enum import Enum
 
 class BaseRVV:
-    
     class VXRM(Enum):
         RNE = 0
         RTZ = 1
