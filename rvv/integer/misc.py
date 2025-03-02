@@ -66,17 +66,17 @@ class MISC(BaseRVV):
     
     def vzext_vf2(self, vd, op1, masked):
         vvd, vop1, mask = self._init_ops_ext(vd, op1, 'vf2', False, masked)
-        vvd[mask] = self.SEW.udtype(vop1[mask])
+        vvd[mask] = self.SEWC.udtype(vop1[mask])
         self._post_op()
     
     def vzext_vf4(self, vd, op1, masked):
         vvd, vop1, mask = self._init_ops_ext(vd, op1, 'vf4', False, masked)
-        vvd[mask] = self.SEW.udtype(vop1[mask])
+        vvd[mask] = self.SEWC.udtype(vop1[mask])
         self._post_op()
     
     def vzext_vf8(self, vd, op1, masked):
         vvd, vop1, mask = self._init_ops_ext(vd, op1, 'vf8', False, masked)
-        vvd[mask] = self.SEW.udtype(vop1[mask])
+        vvd[mask] = self.SEWC.udtype(vop1[mask])
         self._post_op()
     
     ##
@@ -85,16 +85,16 @@ class MISC(BaseRVV):
     
     def vsext_vf2(self, vd, op1, masked):
         vvd, vop1, mask = self._init_ops_ext(vd, op1, 'vf2', True, masked)
-        vvd[mask] = self.SEW.dtype(vop1[mask])
+        vvd[mask] = self.SEWC.dtype(vop1[mask])
         self._post_op()
     
     def vsext_vf4(self, vd, op1, masked):
         vvd, vop1, mask = self._init_ops_ext(vd, op1, 'vf4', True, masked)
-        vvd[mask] = self.SEW.dtype(vop1[mask])
+        vvd[mask] = self.SEWC.dtype(vop1[mask])
         self._post_op()
     
     def vsext_vf8(self, vd, op1, masked):
         vvd, vop1, mask = self._init_ops_ext(vd, op1, 'vf8', True, masked)
-        vvd[mask] = self.SEW.dtype(vop1[mask])
+        vvd[mask] = self.SEWC.dtype(vop1[mask])
         self._post_op()
         

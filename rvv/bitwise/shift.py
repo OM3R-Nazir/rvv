@@ -24,12 +24,12 @@ class Shift(BaseRVV):
     
     def vsra_wv(self, vd, op1, op2, masked=False):
         vd, op1, op2, mask = self._init_ops(vd, op1, op2, 'vwv', 'ssu', masked)
-        vd[mask] = (self.SEW.idtype(op1 >> self.WSEW.udtype(op2)))[mask]
+        vd[mask] = (self.SEWC.idtype(op1 >> self.WSEW.udtype(op2)))[mask]
         self._post_op()
     
     def vsra_wx(self, vd, op1, op2, masked=False):
         vd, op1, op2, mask = self._init_ops(vd, op1, op2, 'vwx', 'ssu', masked)
-        vd[mask] = (self.SEW.idtype(op1 >> self.WSEW.udtype(op2)))[mask]
+        vd[mask] = (self.SEWC.idtype(op1 >> self.WSEW.udtype(op2)))[mask]
         self._post_op()
     
     def vsrl_vv(self, vd, op1, op2, masked=False):
@@ -44,12 +44,12 @@ class Shift(BaseRVV):
     
     def vsrl_wv(self, vd, op1, op2, masked=False):
         vd, op1, op2, mask = self._init_ops(vd, op1, op2, 'vwv', 'uuu', masked)
-        vd[mask] = (self.SEW.udtype(op1 >> self.WSEW.udtype(op2)))[mask]
+        vd[mask] = (self.SEWC.udtype(op1 >> self.WSEW.udtype(op2)))[mask]
         self._post_op()
     
     def vsrl_wx(self, vd, op1, op2, masked=False):
         vd, op1, op2, mask = self._init_ops(vd, op1, op2, 'vwx', 'uuu', masked)
-        vd[mask] = (self.SEW.udtype(op1 >> self.WSEW.udtype(op2)))[mask]
+        vd[mask] = (self.SEWC.udtype(op1 >> self.WSEW.udtype(op2)))[mask]
         self._post_op()
     
     

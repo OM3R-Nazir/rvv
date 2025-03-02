@@ -167,13 +167,13 @@ class Segmented(BaseRVV):
         
         self.__debug_pre_indexed(seg, vd, vindex, vvindex, mask, masked)
         
-        sew_bytes = self.SEW.SEW // 8
-        vector = np.zeros(self.VL * seg, self.SEW.udtype)
+        sew_bytes = self.SEWC.SEW // 8
+        vector = np.zeros(self.VL * seg, self.SEWC.udtype)
         np_memory = np_memory.view(np.uint8)
         
         for i in range(self.VL):
             ptr = vvindex[i] + np_memory_offset
-            vector[i * seg:(i + 1) * seg] = np_memory[ptr:ptr + sew_bytes*seg].view(self.SEW.udtype)
+            vector[i * seg:(i + 1) * seg] = np_memory[ptr:ptr + sew_bytes*seg].view(self.SEWC.udtype)
             
         for i in range(seg):
             _vd = vd + i
@@ -190,8 +190,8 @@ class Segmented(BaseRVV):
         
         self.__debug_pre_indexed(seg, vd, vindex, vvindex, mask, masked)
         
-        sew_bytes = self.SEW.SEW // 8
-        vector = np.zeros(self.VL * seg, self.SEW.udtype)
+        sew_bytes = self.SEWC.SEW // 8
+        vector = np.zeros(self.VL * seg, self.SEWC.udtype)
         np_memory = np_memory.view(np.uint8)
         
         for i in range(seg):

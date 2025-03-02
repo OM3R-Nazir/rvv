@@ -35,7 +35,7 @@ class Permutation(BaseRVV):
         offset = min(offset, self.VL)
         
         vop1 = vop1[offset:]
-        vop1 = np.concatenate((vop1, np.zeros(self.VLMAX - offset, dtype=self.SEW.udtype)))
+        vop1 = np.concatenate((vop1, np.zeros(self.VLMAX - offset, dtype=self.SEWC.udtype)))
         vop1 = vop1[:self.VL]
         
         vd[mask] = vop1[mask]

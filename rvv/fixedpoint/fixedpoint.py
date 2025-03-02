@@ -146,7 +146,7 @@ class FixedPoint(BaseRVV):
         vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'sss', masked)
         for i in range(self.VL):
             if mask[i]:
-                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]) * int(vop2[i]), self.SEW.SEW, vxrm))
+                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]) * int(vop2[i]), self.SEWC.SEW, vxrm))
                 
         self._post_op()
     
@@ -154,7 +154,7 @@ class FixedPoint(BaseRVV):
         vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'sss', masked)
         for i in range(self.VL):
             if mask[i]:
-                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]) * int(xop2), self.SEW.SEW, vxrm))
+                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]) * int(xop2), self.SEWC.SEW, vxrm))
         self._post_op()
     
     ##
@@ -165,28 +165,28 @@ class FixedPoint(BaseRVV):
         vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'sss', masked)
         for i in range(self.VL):
             if mask[i]:
-                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEW.SEW - 1) & int(vop2[i]), vxrm))
+                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEWC.SEW - 1) & int(vop2[i]), vxrm))
         self._post_op()
     
     def vnclip_vx(self, vd, op1, op2, vxrm, masked=False):
         vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'sss', masked)
         for i in range(self.VL):
             if mask[i]:
-                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEW.SEW - 1) & int(xop2), vxrm))
+                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEWC.SEW - 1) & int(xop2), vxrm))
         self._post_op()
     
     def vnclipu_vv(self, vd, op1, op2, vxrm, masked=False):
         vvd, vop1, vop2, mask = self._init_ops(vd, op1, op2, 'vvv', 'uuu', masked)
         for i in range(self.VL):
             if mask[i]:
-                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEW.SEW - 1) & int(vop2[i]), vxrm))
+                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEWC.SEW - 1) & int(vop2[i]), vxrm))
         self._post_op()
     
     def vnclipu_vx(self, vd, op1, op2, vxrm, masked=False):
         vvd, vop1, xop2, mask = self._init_ops(vd, op1, op2, 'vvx', 'uuu', masked)
         for i in range(self.VL):
             if mask[i]:
-                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEW.SEW - 1) & int(xop2), vxrm))
+                vvd[i] = self._iclip(self.vxrm_right_shift(int(vop1[i]), (self.SEWC.SEW - 1) & int(xop2), vxrm))
         self._post_op()
     
     ##

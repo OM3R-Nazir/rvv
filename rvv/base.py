@@ -15,7 +15,7 @@ class BaseRVV:
     def __init__(self, VLEN: int = 2048, debug = False, debug_vb_as_v = False) -> None:
         self.VLEN : int = VLEN
         self.VLENB : int = VLEN // 8
-        self.SEW : SEWC = None
+        self.SEWC : SEWC = None
         self.LMUL : int = None
         self.VL : int = None
         self.VLMAX : int = None
@@ -104,14 +104,14 @@ class BaseRVV:
         self._debug_operation()
            
         if optype == 'vf2':
-            if self.SEW.SEW < 16: raise ValueError("EXT_VF2 requires SEW >= 16")
-            op1_sew = self.SEW.get_lower_sew()
+            if self.SEWC.SEW < 16: raise ValueError("EXT_VF2 requires SEW >= 16")
+            op1_sew = self.SEWC.get_lower_sew()
         elif optype == 'vf4':
-            if self.SEW.SEW < 32: raise ValueError("EXT_VF4 requires SEW >= 32")
-            op1_sew = self.SEW.get_lower_sew().get_lower_sew()
+            if self.SEWC.SEW < 32: raise ValueError("EXT_VF4 requires SEW >= 32")
+            op1_sew = self.SEWC.get_lower_sew().get_lower_sew()
         elif optype == 'vf8':
-            if self.SEW.SEW < 64: raise ValueError("EXT_VF8 requires SEW = 64")
-            op1_sew = self.SEW.get_lower_sew().get_lower_sew().get_lower_sew()
+            if self.SEWC.SEW < 64: raise ValueError("EXT_VF8 requires SEW = 64")
+            op1_sew = self.SEWC.get_lower_sew().get_lower_sew().get_lower_sew()
         
         viewtype = 's' if signed else 'u'
         vvd = self.vec(vd, viewtype)
@@ -179,16 +179,16 @@ class BaseRVV:
             print(*args)
     
     def _iclip(self, num):
-        return np.clip(num, self.SEW.imin, self.SEW.imax)    
+        return np.clip(num, self.SEWC.imin, self.SEWC.imax)    
     
     def _uclip(self, num):
-        return np.clip(num, self.SEW.umin, self.SEW.umax)    
+        return np.clip(num, self.SEWC.umin, self.SEWC.umax)    
     
     def _sext(self, num):
-        return self.WSEW.idtype(self.SEW.idtype(num))
+        return self.WSEW.idtype(self.SEWC.idtype(num))
     
     def _zext(self, num):
-        return self.WSEW.udtype(self.SEW.udtype(num)) 
+        return self.WSEW.udtype(self.SEWC.udtype(num)) 
 
     def bools_to_vm(self, bool_array):
         if len(bool_array) != self.VL:
@@ -242,8 +242,8 @@ class BaseRVV:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {self.LMUL}")
                 
         start = vi * self.VLENB
-        end = start + self.VLMAX * self.SEW.SEW // 8
-        viewtype = self._get_viewtype(viewtype, self.SEW)
+        end = start + self.VLMAX * self.SEWC.SEW // 8
+        viewtype = self._get_viewtype(viewtype, self.SEWC)
         
         return self.VRF[start:end].view(viewtype)
     
@@ -253,8 +253,8 @@ class BaseRVV:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {self.LMUL}")
                 
         start = vi * self.VLENB
-        end = start + self.VL * self.SEW.SEW // 8
-        viewtype = self._get_viewtype(viewtype, self.SEW)
+        end = start + self.VL * self.SEWC.SEW // 8
+        viewtype = self._get_viewtype(viewtype, self.SEWC)
         
         return self.VRF[start:end].view(viewtype)
     
@@ -278,8 +278,8 @@ class BaseRVV:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
             
         start = vi * self.VLENB
-        end = start + self.VL * self.SEW.SEW // 8
-        viewtype = self._get_viewtype(viewtype, self.SEW)
+        end = start + self.VL * self.SEWC.SEW // 8
+        viewtype = self._get_viewtype(viewtype, self.SEWC)
 
         return self.VRF[start:end].view(viewtype)
     
@@ -303,12 +303,12 @@ class BaseRVV:
     
     def sreg(self, xi, viewtype='u'):
         if viewtype == 'x': return self.SRF[xi]
-        viewtype = self._get_viewtype(viewtype, self.SEW)
+        viewtype = self._get_viewtype(viewtype, self.SEWC)
         return viewtype(self.SRF[xi])
     
     def freg(self, xi, viewtype='f'):
         if viewtype == 'x': return self.FRF[xi]
-        viewtype = self._get_viewtype(viewtype, self.SEW)
+        viewtype = self._get_viewtype(viewtype, self.SEWC)
         return viewtype(self.FRF[xi])
     
     def vxrm_rounding(self, val, vxrm):
@@ -333,9 +333,9 @@ class BaseRVV:
         if m not in self._valid_lmuls:
             raise ValueError(f"Invaid LMUL value {m}")
         
-        self.SEW = SEWC(e)
+        self.SEWC = SEWC(e)
         self.LMUL = m
-        self.VLMAX = self.VLEN * self.LMUL // self.SEW.SEW
+        self.VLMAX = self.VLEN * self.LMUL // self.SEWC.SEW
         
         if avl == 0: avl = self.VLMAX
         self.VL = min([self.VLMAX, avl]) 
@@ -345,11 +345,11 @@ class BaseRVV:
     def vle(self, vd, inp : np.ndarray):
         if type(inp) == list:
             self._debug_print(f"Warning: vle({vd}): List Input for vle is not recommended. Use np.array instead.")
-            self._debug_print("Converting List to np.array of dtype", self.SEW.idtype)
-            inp = np.array(inp, dtype=self.SEW.idtype)
-        if inp.itemsize != self.SEW.SEW // 8:
-            self._debug_print(f"Warning: vle({vd}): Input SEW {inp.itemsize*8} does not match Set SEW {self.SEW.SEW}.")
-        inp = inp.view(self.SEW.udtype)
+            self._debug_print("Converting List to np.array of dtype", self.SEWC.idtype)
+            inp = np.array(inp, dtype=self.SEWC.idtype)
+        if inp.itemsize != self.SEWC.SEW // 8:
+            self._debug_print(f"Warning: vle({vd}): Input SEW {inp.itemsize*8} does not match Set SEW {self.SEWC.SEW}.")
+        inp = inp.view(self.SEWC.udtype)
         if inp.size > self.VL:
             self._debug_print(f"Warning: vle({vd}): Input Size {inp.size} exceeds VL {self.VL}.")
         if inp.size < self.VL:
@@ -381,7 +381,7 @@ class BaseRVV:
 
     @property
     def WSEW(self):
-        return self.SEW.get_higher_sew()
+        return self.SEWC.get_higher_sew()
     
     @WSEW.setter
     def WSEW(self, sew):
@@ -389,7 +389,7 @@ class BaseRVV:
 
     @property
     def NSEW(self):
-        return self.SEW.get_lower_sew()
+        return self.SEWC.get_lower_sew()
     
     @NSEW.setter
     def NSEW(self, sew):
