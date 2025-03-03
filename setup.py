@@ -4,7 +4,9 @@ setup(
     name="rvv",
     version="0.1.0",
     packages=find_packages(),
-    install_requires=[],
+    install_requires=[
+        "numpy>=1.18",    
+    ],
     author="Omer Nazir",
     description="A library for RISC-V Vector extensions",
     long_description=open("README.md").read(),
@@ -16,4 +18,5 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.7",
+    license="MIT",
 )
