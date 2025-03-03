@@ -71,7 +71,7 @@ rvv.vle(1, vector_data)
 
 # Initializing memory and loading another vector register from it
 memory = np.arange(100, dtype=np.int32)
-rvv.vle32(2, memory, 10)
+rvv.vle32_v(2, memory, 12)
 
 # Convert a boolean array to a vector mask and back
 bool_mask = np.array([True, False, True, True], dtype=bool)
@@ -81,7 +81,7 @@ vmask = rvv.bools_to_vm(bool_mask)
 rvv.vlm(0, vmask)
 
 # Perform RVV operations
-rvv.vadd(3, 2, 1)
+rvv.vadd_vv(3, 2, 1)
 
 # Store and print the contents of a vector register
 stored_vector = rvv.vse(3)
