@@ -2,6 +2,13 @@
 
 RVV is a Python module that simulates the behavior of the RISC-V Vector Extension. It provides a framework for most of the RISCV-V Base Vector Extension assembly instructions along with few extra instruction mentioned below. 
 
+### Installation
+You can install `rvv` via **pip**:  
+
+```bash
+pip install rvv
+```
+
 ## Additional Features
 
 - **Vector Register Operations**  
