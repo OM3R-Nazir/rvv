@@ -24,7 +24,7 @@ class Conversion(BaseRVV):
     
     def vfwcvt_f_f_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'ff', masked)
-        vd[mask] = self._WSEW.fdtype(vsrc[mask])
+        vd[mask] = self._WSEWC.fdtype(vsrc[mask])
         self._post_op()
         
     def vfncvt_f_f_w(self, vd, vsrc, masked):
@@ -54,12 +54,12 @@ class Conversion(BaseRVV):
     
     def vfwcvt_f_x_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'fs', masked)
-        vd[mask] = self._WSEW.fdtype(vsrc[mask])
+        vd[mask] = self._WSEWC.fdtype(vsrc[mask])
         self._post_op()
     
     def vfwcvt_f_xu_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'fu', masked)
-        vd[mask] = self._WSEW.fdtype(vsrc[mask])
+        vd[mask] = self._WSEWC.fdtype(vsrc[mask])
         self._post_op()
         
     def vfcvt_x_f_v(self, vd, vsrc, masked):
@@ -84,10 +84,10 @@ class Conversion(BaseRVV):
     
     def vfwcvt_x_f_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'sf', masked)
-        vd[mask] = self._WSEW.idtype(vsrc[mask])
+        vd[mask] = self._WSEWC.idtype(vsrc[mask])
         self._post_op()
     
     def vfwcvt_xu_f_v(self, vd, vsrc, masked):
         vd, vsrc, mask = self._init_ops_uni(vd, vsrc, 'wv', 'uf', masked)
-        vd[mask] = self._WSEW.udtype(vsrc[mask])
+        vd[mask] = self._WSEWC.udtype(vsrc[mask])
         self._post_op()
