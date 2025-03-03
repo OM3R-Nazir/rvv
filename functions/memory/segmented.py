@@ -4,11 +4,12 @@ import numpy as np
 class Segmented(BaseRVV):
 
     def __seg_check(self, seg, vd):
-        if (self.LMUL * seg > 8):
-            raise ValueError(f"Invalid LMUL ({self.LMUL}) for Seg {seg}!")
+        lmul = 1 if self.LMUL < 1 else self.LMUL
+        if (lmul * seg > 8):
+            raise ValueError(f"Invalid LMUL ({lmul}) for Seg {seg}!")
         
-        if (vd > 32 - seg * self.LMUL):
-            raise ValueError(f"Invalid Vd ({vd}) for Seg {seg} x LMUL {self.LMUL}!")
+        if (vd > 32 - seg * lmul):
+            raise ValueError(f"Invalid Vd ({vd}) for Seg {seg} x LMUL {lmul}!")
     
     def __get_vindex(self, vi, sew):
         start = vi * self.VLENB

@@ -29,6 +29,17 @@ RVV is a Python module that simulates the behavior of the RISC-V Vector Extensio
 - **Extensions**  
   You can add extensions from `rvv.extensions`. Right now only ZVFH extension is implemented. In example below, it is shown how to add an extension to base class.
 
+## Missing Features
+
+- **Fractional LMULs**
+  Currently only LMULs that are supported are 1, 2, 4 and 8
+
+- **Mask/Tail Agnostic**
+  Currently, all instructions are by default mask and tail undisturbed.
+
+- **Float Rounding Mode (FRM)**
+  Currently, float rounding mode is same as numpy's default (Round to Nearest, ties to even)
+
 ## Requirements
 
 - Python 3.7 or higher
