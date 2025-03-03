@@ -1,5 +1,5 @@
 import numpy as np
-from utils.sew import SEWC
+from rvv.utils.sew import SEWC
 import inspect
 from enum import Enum
 
@@ -22,7 +22,7 @@ class BaseRVV:
         Attributes:
             VLEN (int): Vector Length in bits.
             VLENB (int): Vector Length in bytes.
-            LMUL (int): Vector Length Multiplier.
+            LMUL (float): Vector Length Multiplier.
             VL (int): Vector Length register.
             VLMAX (int): Maximum Vector Length.
             SEW (int): Standard Element Width.
@@ -32,7 +32,7 @@ class BaseRVV:
 
         self.VLEN : int = VLEN
         self.VLENB : int = VLEN // 8
-        self.LMUL : int = None
+        self.LMUL : float = None
         self.VL : int = None
         self.VLMAX : int = None
         self.SEW : int = None
@@ -40,7 +40,7 @@ class BaseRVV:
         self._SEWC : SEWC = None
         
         self._valid_sews : list[int] = [8, 16, 32, 64]
-        self._valid_lmuls : list[int] = [1, 2, 4, 8]
+        self._valid_lmuls : list[float] = [1/8, 1/4, 1/2, 1., 2., 4., 8.]
         self._valid_fsews : list[int] = [32, 64]
         
         self._extensions : list[str] = ["Base"]
@@ -61,7 +61,7 @@ class BaseRVV:
         Args:
             avl (int): Active vector length. If 0, it defaults to VLMAX.
             e (int): Standard element width. Must be one of the valid SEWs.
-            m (int): Vector length multiplier. Must be one of the valid LMULs.
+            m (float): Vector length multiplier. Must be one of the valid LMULs.
 
         Raises:
             ValueError: If `e` is not a valid SEW or `m` is not a valid LMUL.
@@ -262,8 +262,7 @@ class BaseRVV:
         if VL is None: VL = self.VL
         SEWB = dtype.itemsize
 
-        if vi % LMUL != 0:
-            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
+        self._check_valid_lmul(vi, LMUL)
             
         start = vi * self.VLENB
         end = start + VL * SEWB
@@ -330,6 +329,9 @@ class BaseRVV:
         return bool_array
     
     def _init_vec_regs(self):
+        """
+        Initialize vector registers with values from 0 to VL-1.
+        """
         self.vsetvli(0, 8, 1)
         
         for i in range(32):
@@ -338,6 +340,33 @@ class BaseRVV:
                 v[k] = k
     
     def _initer(self, op, optype, viewtype):
+
+        """
+        Initialize an operand based on its type and view type.
+
+        Parameters
+        ----------
+        op : int
+            Operand index or identifier.
+        optype : str
+            Operand type, which can be one of the following:
+            'v' for vector, 'w' for wide vector, 's' for scalar vector,
+            'd' for double vector, 'x' for scalar register,
+            'f' for floating-point register, 'm' for vector mask.
+        viewtype : str
+            View type for the operand, indicating how it should be interpreted.
+
+        Returns
+        -------
+        np.ndarray or other types
+            Initialized operand based on the type and view type.
+
+        Raises
+        ------
+        ValueError
+            If the operand type is invalid.
+        """
+
         if optype == 'v': return self._vec(op, viewtype)
         elif optype == 'w': return self._vecw(op, viewtype)
         elif optype == 's': return self._vecs(op, viewtype)
@@ -348,6 +377,26 @@ class BaseRVV:
         else: raise ValueError(f"Invalid Operand Type {optype}")
     
     def _get_mask(self, vops, masked):
+        """
+        Return a mask for a vector operation.
+
+        Parameters
+        ----------
+        vops : list of int
+            Vector register indices.
+        masked : bool
+            Whether the operation is masked.
+
+        Returns
+        -------
+        numpy.ndarray
+            A boolean mask of length ``self.VL``.
+
+        Raises
+        ------
+        ValueError
+            If the operation is masked and V0 is used as an operand.
+        """
         if not masked:
             return np.ones(self.VL, dtype=np.bool_)
             
@@ -357,7 +406,35 @@ class BaseRVV:
         return self.vm_to_bools(self._vecm(0))
     
     def _init_ops_generic(self, ops, optypes, viewtypes, masked):        
-        # Initialize all operands
+        """
+        Initialize and prepare operands for a vector operation.
+
+        This method initializes the operands based on their types and view types, 
+        and applies a mask if the operation is masked. It performs debugging of 
+        operand values and the mask, and sets a post-operation flag for additional 
+        processing.
+
+        Parameters
+        ----------
+        ops : list of int
+            Indices or identifiers of the operands.
+        optypes : list of str
+            Types of the operands, which can be one of the following:
+            'v' for vector, 'w' for wide vector, 's' for scalar vector,
+            'd' for double vector, 'x' for scalar register,
+            'f' for floating-point register, 'm' for vector mask.
+        viewtypes : list of str
+            View types for the operands, indicating how they should be interpreted.
+        masked : bool
+            Whether the operation is masked.
+
+        Returns
+        -------
+        list
+            A list of initialized operand values, with the mask appended as the 
+            last element.
+        """
+
         op_values = []
         for op, optype, viewtype in zip(ops, optypes, viewtypes):
             op_value = self._initer(op, optype, viewtype)
@@ -383,22 +460,168 @@ class BaseRVV:
         return op_values
     
     def _init_ops_zero(self, od, optypes, viewtypes, masked):
+        """
+        Initialize a single operand with zero inputs.
+
+        Parameters
+        ----------
+        od : int
+            Operand identifier.
+        optypes : list of str
+            Types of the operands.
+        viewtypes : list of str
+            View types for the operands, indicating how they should be interpreted.
+        masked : bool
+            Whether the operation is masked.
+
+        Returns
+        -------
+        list
+            A list containing the initialized operand value and the mask.
+        """
+
         self._debug_operation()
         return self._init_ops_generic([od], optypes, viewtypes, masked)
     
     def _init_ops_uni(self, od, op1, optypes, viewtypes, masked):
+        """
+        Initialize two operands for a unary vector operation.
+
+        This method initializes two operands, the destination operand and a single 
+        source operand, for a unary vector operation. It also applies a mask if the 
+        operation is masked and performs debugging operations.
+
+        Parameters
+        ----------
+        od : int
+            Destination operand identifier.
+        op1 : int
+            Source operand identifier.
+        optypes : list of str
+            Types of the operands, which can be one of the following:
+            'v' for vector, 'w' for wide vector, 's' for scalar vector,
+            'd' for double vector, 'x' for scalar register,
+            'f' for floating-point register, 'm' for vector mask.
+        viewtypes : list of str
+            View types for the operands, indicating how they should be interpreted.
+        masked : bool
+            Whether the operation is masked.
+
+        Returns
+        -------
+        list
+            A list containing the initialized operand values and the mask.
+        """
+
         self._debug_operation()
         return self._init_ops_generic([od, op1], optypes, viewtypes, masked)
     
     def _init_ops(self, od, op1, op2, optypes, viewtypes, masked):
+        """
+        Initialize three operands for a binary vector operation.
+
+        This method initializes three operands, including a destination operand
+        and two source operands, for a binary vector operation. It also applies 
+        a mask if the operation is masked and performs debugging operations.
+
+        Parameters
+        ----------
+        od : int
+            Destination operand identifier.
+        op1 : int
+            First source operand identifier.
+        op2 : int
+            Second source operand identifier.
+        optypes : list of str
+            Types of the operands, which can be one of the following:
+            'v' for vector, 'w' for wide vector, 's' for scalar vector,
+            'd' for double vector, 'x' for scalar register,
+            'f' for floating-point register, 'm' for vector mask.
+        viewtypes : list of str
+            View types for the operands, indicating how they should be interpreted.
+        masked : bool
+            Whether the operation is masked.
+
+        Returns
+        -------
+        list
+            A list containing the initialized operand values and the mask.
+        """
+
         self._debug_operation()
         return self._init_ops_generic([od, op1, op2], optypes, viewtypes, masked)
 
     def _init_ops_tri(self, od, op1, op2, op3, optypes, viewtype, masked):
+        """
+        Initialize four operands for a ternary vector operation.
+
+        This method initializes four operands, including a destination operand
+        and three source operands, for a ternary vector operation. It also applies
+        a mask if the operation is masked and performs debugging operations.
+
+        Parameters
+        ----------
+        od : int
+            Destination operand identifier.
+        op1 : int
+            First source operand identifier.
+        op2 : int
+            Second source operand identifier.
+        op3 : int
+            Third source operand identifier.
+        optypes : list of str
+            Types of the operands, which can be one of the following:
+            'v' for vector, 'w' for wide vector, 's' for scalar vector,
+            'd' for double vector, 'x' for scalar register,
+            'f' for floating-point register, 'm' for vector mask.
+        viewtype : str
+            View type for the operands, indicating how they should be interpreted.
+        masked : bool
+            Whether the operation is masked.
+
+        Returns
+        -------
+        list
+            A list containing the initialized operand values and the mask.
+        """
         self._debug_operation()
         return self._init_ops_generic([od, op1, op2, op3], optypes, viewtype, masked)
     
     def _init_ops_ext(self, vd, op1, optype, signed, masked):
+        """
+        Initialize operands for an extended vector operation.
+
+        This method initializes two operands for an extended vector operation,
+        taking into account the operand type to determine the required SEW
+        (Standard Element Width) and applies appropriate view types based on
+        whether the operation is signed or unsigned. It also applies a mask if
+        the operation is masked and performs debugging operations.
+
+        Parameters
+        ----------
+        vd : int
+            Destination vector register identifier.
+        op1 : int
+            Source vector register identifier.
+        optype : str
+            Type of the operation, which can be 'vf2', 'vf4', or 'vf8'.
+        signed : bool
+            Whether the operation is signed.
+        masked : bool
+            Whether the operation is masked.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the initialized destination vector, the modified
+            source operand value, and the mask.
+        
+        Raises
+        ------
+        ValueError
+            If the SEW requirement for the given optype is not met.
+        """
+
         self._debug_operation()
            
         if optype == 'vf2':
@@ -438,10 +661,35 @@ class BaseRVV:
         return vvd, op1_value, mask
     
     def _post_op(self):
+        """
+        Print the post operation value of the destination vector register.
+        
+        Notes
+        -----
+        This function is only called if debug is enabled.
+        """
         if self.debug:
             self._debug_val(self._pvd['optype'], 'd', self._pvd['val'], self._pvd['op'])
     
     def _debug_val(self, optype, opname, val, op=None):
+        """
+        Print the value of an operand/register.
+
+        Parameters
+        ----------
+        optype : str
+            Type of the operand/register.
+        opname : str
+            Name of the operand/register.
+        val : int/float/bool
+            Value of the operand/register.
+        op : int, optional
+            Index of the operand/register (default is None).
+
+        Notes
+        -----
+        This function is only called if debug is enabled.
+        """
         if self.debug:
             if optype in ['v','w','s','d','x','f']:
                 print(f"{optype + opname:>5} {optype:>2}{op:02}: ", val)
@@ -453,17 +701,39 @@ class BaseRVV:
                 pass
             else:
                 raise ValueError(f"Invalid Value Type {optype}")
-                
-    def _debug_vmd(self):
-        if self.debug:
-            pass
     
     def _debug_mask(self, mask, masked):
+        """
+        Print the value of a mask register.
+
+        Parameters
+        ----------
+        mask : numpy.ndarray
+            Boolean mask array.
+        masked : bool
+            Whether the operation is masked.
+
+        Notes
+        -----
+        This function is only called if debug is enabled.
+        If debug_vb_as_v is True, the mask is converted from a boolean array to a vector mask.
+        The mask is printed as a vector of uint8 values.
+        """
         if self.debug and masked:
             if self.debug_vb_as_v: mask = self.bools_to_vm(mask)
             print(f"vmask  vm0:  {mask.view(np.uint8)}")
     
     def _debug_operation(self):
+        """
+        Print the name of the current operation.
+
+        Notes
+        -----
+        This function is only called if debug is enabled.
+        This function prints the name of the caller of the function that calls it.
+        The operation name is obtained from the current frame using inspect.currentframe().
+        The operation name is printed with a row of "=" characters above and below it.
+        """
         if self.debug:
             print("\n")
             print(f"{'='*30}")
@@ -471,6 +741,14 @@ class BaseRVV:
             print(f"{'='*30}")
     
     def _debug_print(self, *args):
+        """
+        Print the given arguments if debugging is enabled.
+
+        Parameters
+        ----------
+        *args
+            Arguments to be printed.
+        """
         if self.debug:
             print(*args)
     
@@ -486,15 +764,35 @@ class BaseRVV:
     def _zext(self, num):
         return self._WSEW.udtype(self._SEWC.udtype(num)) 
 
-    def _vm_masked(self, vmd, vms, mask):
-        vmdb = self.vm_to_bools(vmd)
-        vmb = self.vm_to_bools(vms)
-        vmdb[mask] = vmb[mask]
-        vmd[:] = self.bools_to_vm(vmdb)
-        return vmd
+    def _vm_masked(self, dest, src, mask):
+        """Mask a destination vector register with a source vector register and a mask."""
+        dest_bools = self.vm_to_bools(dest)
+        src_bools = self.vm_to_bools(src)
+        dest_bools[mask] = src_bools[mask]
+        dest[:] = self.bools_to_vm(dest_bools)
+        return dest
     
     def _get_viewtype(self, viewtype, SEW):
-        
+        """
+        Return the numpy dtype corresponding to the given viewtype and SEW.
+
+        Parameters
+        ----------
+        viewtype : str
+            'u' for unsigned, 's' for signed, 'f' for floating-point.
+        SEW : SEWC
+            The Standard Element Width configuration.
+
+        Returns
+        -------
+        numpy.dtype
+            The numpy dtype corresponding to the given viewtype and SEW.
+
+        Raises
+        ------
+        ValueError
+            If the viewtype is not one of 'u', 's', or 'f', or if the SEW is not valid for the given viewtype.
+        """
         if viewtype == 'u': return SEW.udtype
         elif viewtype == 's': return SEW.idtype
         elif viewtype == 'f': 
@@ -504,10 +802,12 @@ class BaseRVV:
         
         else: raise ValueError(f"Invalid Viewtype {viewtype}")
     
-    def _full_vec(self, vi, viewtype='u'):
-        
+    def _check_valid_lmul(self, vi, lmul):
         if vi % self.LMUL != 0:
-            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {self.LMUL}")
+            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {lmul}")
+        
+    def _full_vec(self, vi, viewtype='u'):
+        self._check_valid_lmul(vi, self.LMUL)
                 
         start = vi * self.VLENB
         end = start + self.VLMAX * self._SEWC.SEW // 8
@@ -516,9 +816,7 @@ class BaseRVV:
         return self._VRF[start:end].view(viewtype)
     
     def _vec(self, vi, viewtype='u'):
-        
-        if vi % self.LMUL != 0:
-            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {self.LMUL}")
+        self._check_valid_lmul(vi, self.LMUL)
                 
         start = vi * self.VLENB
         end = start + self.VL * self._SEWC.SEW // 8
@@ -527,23 +825,21 @@ class BaseRVV:
         return self._VRF[start:end].view(viewtype)
     
     def _vecw(self, vi, viewtype='u'):
-        LMUL = self.LMUL + 1
-        SEW = self._WSEW
+        LMUL = self.LMUL*2
+        SEWC = self._WSEW
 
-        if vi % LMUL != 0:
-            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
+        self._check_valid_lmul(vi, LMUL)
             
         start = vi * self.VLENB
-        end = start + self.VL * SEW.SEW // 8
-        viewtype = self._get_viewtype(viewtype, SEW)
+        end = start + self.VL * SEWC.SEW // 8
+        viewtype = self._get_viewtype(viewtype, SEWC)
 
         return self._VRF[start:end].view(viewtype)
     
     def _vecs(self, vi, viewtype='u'):
         LMUL = 1
 
-        if vi % LMUL != 0:
-            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
+        self._check_valid_lmul(vi, LMUL)
             
         start = vi * self.VLENB
         end = start + self.VL * self._SEWC.SEW // 8
@@ -553,14 +849,13 @@ class BaseRVV:
     
     def _vecd(self, vi, viewtype='u'):
         LMUL = 1
-        SEW = self._WSEW
+        SEWC = self._WSEW
 
-        if vi % LMUL != 0:
-            raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {LMUL}")
+        self._check_valid_lmul(vi, LMUL)
             
         start = vi * self.VLENB
-        end = start + self.VL * SEW.SEW // 8
-        viewtype = self._get_viewtype(viewtype, SEW)
+        end = start + self.VL * SEWC.SEW // 8
+        viewtype = self._get_viewtype(viewtype, SEWC)
 
         return self._VRF[start:end].view(viewtype)
     
