@@ -10,14 +10,14 @@ class BaseRVV:
         RDN = 2
         RUP = 3
 
-    def __init__(self, VLEN: int = 2048, debug = False, debug_vb_as_v = False) -> None:
+    def __init__(self, VLEN: int = 2048, debug = False, debug_vm_as_v = False) -> None:
         """
         Initialize a BaseRVV object with given parameters.
 
         Args:
             VLEN (int, optional): Vector Length in bits. Default is 2048.
             debug (bool, optional): Enable debugging mode. Default is False.
-            debug_vb_as_v (bool, optional): Debug vector boolean register as vector uint8. Default is False.
+            debug_vm_as_v (bool, optional): Debug vector boolean register as vector uint8. Default is False.
         
         Attributes:
             VLEN (int): Vector Length in bits.
@@ -27,7 +27,7 @@ class BaseRVV:
             VLMAX (int): Maximum Vector Length.
             SEW (int): Standard Element Width.
             debug (bool): Debugging mode flag.
-            debug_vb_as_v (bool): Debug vector boolean as vector flag.
+            debug_vm_as_v (bool): Debug vector boolean as vector flag.
         """
 
         self.VLEN : int = VLEN
@@ -51,7 +51,7 @@ class BaseRVV:
         
         self._init_vec_regs()
         self.debug = debug
-        self.debug_vb_as_v = debug_vb_as_v
+        self.debug_vm_as_v = debug_vm_as_v
         
     def vsetvli(self, avl, e, m) -> None:
         """
@@ -262,7 +262,7 @@ class BaseRVV:
         if VL is None: VL = self.VL
         SEWB = dtype.itemsize
 
-        self._check_valid_lmul(vi, LMUL)
+        self._check_valid_vr(vi, LMUL)
             
         start = vi * self.VLENB
         end = start + VL * SEWB
@@ -626,13 +626,13 @@ class BaseRVV:
            
         if optype == 'vf2':
             if self._SEWC.SEW < 16: raise ValueError("EXT_VF2 requires SEW >= 16")
-            op1_sew = self._SEWC.get_lower_sew()
+            op1_sew = self._SEWC.get_lower_sewc()
         elif optype == 'vf4':
             if self._SEWC.SEW < 32: raise ValueError("EXT_VF4 requires SEW >= 32")
-            op1_sew = self._SEWC.get_lower_sew().get_lower_sew()
+            op1_sew = self._SEWC.get_lower_sewc().get_lower_sewc()
         elif optype == 'vf8':
             if self._SEWC.SEW < 64: raise ValueError("EXT_VF8 requires SEW = 64")
-            op1_sew = self._SEWC.get_lower_sew().get_lower_sew().get_lower_sew()
+            op1_sew = self._SEWC.get_lower_sewc().get_lower_sewc().get_lower_sewc()
         
         viewtype = 's' if signed else 'u'
         vvd = self._vec(vd, viewtype)
@@ -695,7 +695,7 @@ class BaseRVV:
                 print(f"{optype + opname:>5} {optype:>2}{op:02}: ", val)
             elif optype == 'm':
                 optype = 'vm'
-                if not self.debug_vb_as_v: val = self.vm_to_bools(val).view(np.uint8)
+                if not self.debug_vm_as_v: val = self.vm_to_bools(val).view(np.uint8)
                 print(f"{optype + opname:>5} {optype:>2}{op:02}: ", val)
             elif optype == '_':
                 pass
@@ -716,11 +716,11 @@ class BaseRVV:
         Notes
         -----
         This function is only called if debug is enabled.
-        If debug_vb_as_v is True, the mask is converted from a boolean array to a vector mask.
+        If debug_vm_as_v is True, the mask is converted from a boolean array to a vector mask.
         The mask is printed as a vector of uint8 values.
         """
         if self.debug and masked:
-            if self.debug_vb_as_v: mask = self.bools_to_vm(mask)
+            if self.debug_vm_as_v: mask = self.bools_to_vm(mask)
             print(f"vmask  vm0:  {mask.view(np.uint8)}")
     
     def _debug_operation(self):
@@ -759,10 +759,10 @@ class BaseRVV:
         return np.clip(num, self._SEWC.umin, self._SEWC.umax)    
     
     def _sext(self, num):
-        return self._WSEW.idtype(self._SEWC.idtype(num))
+        return self._WSEWC.idtype(self._SEWC.idtype(num))
     
     def _zext(self, num):
-        return self._WSEW.udtype(self._SEWC.udtype(num)) 
+        return self._WSEWC.udtype(self._SEWC.udtype(num)) 
 
     def _vm_masked(self, dest, src, mask):
         """Mask a destination vector register with a source vector register and a mask."""
@@ -802,12 +802,12 @@ class BaseRVV:
         
         else: raise ValueError(f"Invalid Viewtype {viewtype}")
     
-    def _check_valid_lmul(self, vi, lmul):
+    def _check_valid_vr(self, vi, lmul):
         if vi % self.LMUL != 0:
             raise ValueError(f"Invalid Vector Register Number {vi} for LMUL {lmul}")
         
     def _full_vec(self, vi, viewtype='u'):
-        self._check_valid_lmul(vi, self.LMUL)
+        self._check_valid_vr(vi, self.LMUL)
                 
         start = vi * self.VLENB
         end = start + self.VLMAX * self._SEWC.SEW // 8
@@ -816,7 +816,7 @@ class BaseRVV:
         return self._VRF[start:end].view(viewtype)
     
     def _vec(self, vi, viewtype='u'):
-        self._check_valid_lmul(vi, self.LMUL)
+        self._check_valid_vr(vi, self.LMUL)
                 
         start = vi * self.VLENB
         end = start + self.VL * self._SEWC.SEW // 8
@@ -826,9 +826,9 @@ class BaseRVV:
     
     def _vecw(self, vi, viewtype='u'):
         LMUL = self.LMUL*2
-        SEWC = self._WSEW
+        SEWC = self._WSEWC
 
-        self._check_valid_lmul(vi, LMUL)
+        self._check_valid_vr(vi, LMUL)
             
         start = vi * self.VLENB
         end = start + self.VL * SEWC.SEW // 8
@@ -839,7 +839,7 @@ class BaseRVV:
     def _vecs(self, vi, viewtype='u'):
         LMUL = 1
 
-        self._check_valid_lmul(vi, LMUL)
+        self._check_valid_vr(vi, LMUL)
             
         start = vi * self.VLENB
         end = start + self.VL * self._SEWC.SEW // 8
@@ -849,9 +849,9 @@ class BaseRVV:
     
     def _vecd(self, vi, viewtype='u'):
         LMUL = 1
-        SEWC = self._WSEW
+        SEWC = self._WSEWC
 
-        self._check_valid_lmul(vi, LMUL)
+        self._check_valid_vr(vi, LMUL)
             
         start = vi * self.VLENB
         end = start + self.VL * SEWC.SEW // 8
@@ -890,18 +890,18 @@ class BaseRVV:
         return self._vxrm_rounding(val, vxrm)
         
     @property
-    def _WSEW(self):
-        return self._SEWC.get_higher_sew()
+    def _WSEWC(self):
+        return self._SEWC.get_higher_sewc()
     
-    @_WSEW.setter
-    def _WSEW(self, sew):
+    @_WSEWC.setter
+    def _WSEWC(self, sew):
         pass
 
     @property
-    def _NSEW(self):
-        return self._SEWC.get_lower_sew()
+    def _NSEWC(self):
+        return self._SEWC.get_lower_sewc()
     
-    @_NSEW.setter
-    def _NSEW(self, sew):
+    @_NSEWC.setter
+    def _NSEWC(self, sew):
         pass
     

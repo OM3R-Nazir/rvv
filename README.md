@@ -29,16 +29,19 @@ RVV is a Python module that simulates the behavior of the RISC-V Vector Extensio
 - **Extensions**  
   You can add extensions from `rvv.extensions`. Right now only ZVFH extension is implemented. In example below, it is shown how to add an extension to base class.
 
-## Missing Features
-
 - **Fractional LMULs**
-  Currently only LMULs that are supported are 1, 2, 4 and 8
+  For Fractional LMULs (`mf2`, `mf4`, `mf8`) use `1/2`, `1/4`, `1/8`.
+
+## Missing Features
 
 - **Mask/Tail Agnostic**
   Currently, all instructions are by default mask and tail undisturbed.
 
 - **Float Rounding Mode (FRM)**
   Currently, float rounding mode is same as numpy's default (Round to Nearest, ties to even)
+
+- **Extensions**
+  Extensions are currently to be added. Only ZVFH Extension has currently been added
 
 ## Requirements
 
@@ -73,7 +76,7 @@ rvv.vle(1, vector_data)
 memory = np.arange(100, dtype=np.int32)
 rvv.vle32_v(2, memory, 12)
 
-# Convert a boolean array to a vector mask and back
+# Convert a boolean array to a vector mask
 bool_mask = np.array([True, False, True, True], dtype=bool)
 vmask = rvv.bools_to_vm(bool_mask)
 
@@ -96,7 +99,7 @@ print("Vector Register 2:", stored_vector)
 - **Parameters:**
   - `VLEN` (int, optional): Vector Length in bits (default: 2048).
   - `debug` (bool, optional): Enable debugging mode (default: False).
-  - `debug_vb_as_v` (bool, optional): Debug vector boolean register as vector uint8 (default: False).
+  - `debug_vm_as_v` (bool, optional): Debug vector mask register as vector uint8 (default: False).
 
 - **Attributes:**
   - `VLEN`: Vector Length in bits.
@@ -106,7 +109,7 @@ print("Vector Register 2:", stored_vector)
   - `VLMAX`: Maximum Vector Length.
   - `SEW`: Standard Element Width.
   - `debug`: Debugging mode flag.
-  - `debug_vb_as_v`: Flag to debug vector boolean registers.
+  - `debug_vm_as_v`: Flag to debug vector mask registers.
 
 #### Methods
 
@@ -145,6 +148,10 @@ print("Vector Register 2:", stored_vector)
   - **Floating-Point Loads/Stores:**  
     `flh`, `flw`, `flf` (for loading) and `fsh`, `fsw`, `fsd` (for storing)  
     These methods handle operations on the floating-point register file (`_FRF`).
+
+### Code Structure
+Code consists of main class BaseRVV that contains most of the common functions that are to be exposed to users, and those which are used internally by other class. To Cater for the sheer amount of instructions/functions, they have been divided into subclasses inside function dir. They have been classified according to [Intrinsics Viewer](https://dzaima.github.io/intrinsics-viewer/#0q1YqVbJSKsosTtYtU9JRSlSyilYqU4rVUUoGsoBUJlDWEASUagE). Each subclass extends from base class and adds respective type of functions. The RVV class exposed to users, is extended from these subclasses.
+Each intruction (except from memory instructions), starts with one of the `_init_ops()` base class function and ends with `_post_op()` base class function. This allows for future changes that are universal to all functions easir (like adding tail and mask agnostic feature).
 
 ## Contributing
 

@@ -12,7 +12,7 @@ from rvv.functions.fixedpoint import RVVFixed
 
 class RVV(RVVInteger, RVVFloat, RVVFold, RVVMask, RVVBitwise, RVVMemory,
           RVVPermutation, RVVInitialize, RVVConversion, RVVFixed):
-    def __init__(self, VLEN: int = 2048, debug = False, debug_vb_as_v = False):
-        super().__init__(VLEN, debug, debug_vb_as_v)
+    def __init__(self, VLEN: int = 2048, debug = False, debug_vm_as_v = False):
+        super().__init__(VLEN, debug, debug_vm_as_v)
 
 __all__ = ['RVV']

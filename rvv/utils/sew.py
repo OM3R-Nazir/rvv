@@ -26,10 +26,10 @@ class SEWC:
         self.umax = np.iinfo(self.udtype).max
         self.umin = 0
 
-    def get_lower_sew(self):
+    def get_lower_sewc(self):
         if self.SEW == 8: raise ValueError("No SEW lower than 8")
         else: return SEWC(self.SEW//2)
         
-    def get_higher_sew(self):
+    def get_higher_sewc(self):
         if self.SEW == 64: return ValueError("No SEW higher than 64")
         else: return SEWC(self.SEW*2)
