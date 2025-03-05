@@ -31,7 +31,7 @@ pip install rvv
   All vector arrays are initialized with values from 0 to VLEN in bytes.
 
 - **Vector Memory Options**  
-  Vector Memory operations (`vle8`, `vse8`, etc.) work a little different. Contrary to asm, where only pointer is required, insturctions in this library require you to pass in a numpy array as memory, and offset in bytes.
+  Vector Memory operations (`vle8`, `vse8`, etc.) work a little different. Contrary to asm, where only pointer is required, instructions in this library require you to pass in a numpy array as memory, and offset in bytes.
 
 - **Extensions**  
   You can add extensions from `rvv.extensions`. Right now only ZVFH extension is implemented. In example below, it is shown how to add an extension to base class.
@@ -158,7 +158,7 @@ print("Vector Register 2:", stored_vector)
 
 ### Code Structure
 Code consists of main class BaseRVV that contains most of the common functions that are to be exposed to users, and those which are used internally by other class. To Cater for the sheer amount of instructions/functions, they have been divided into subclasses inside function dir. They have been classified according to [Intrinsics Viewer](https://dzaima.github.io/intrinsics-viewer/#0q1YqVbJSKsosTtYtU9JRSlSyilYqU4rVUUoGsoBUJlDWEASUagE). Each subclass extends from base class and adds respective type of functions. The RVV class exposed to users, is extended from these subclasses.
-Each intruction (except from memory instructions), starts with one of the `_init_ops()` base class function and ends with `_post_op()` base class function. This allows for future changes that are universal to all functions easir (like adding tail and mask agnostic feature).
+Each instruction (except from memory instructions), starts with one of the `_init_ops()` base class function and ends with `_post_op()` base class function. This allows for future changes that are universal to all functions easir (like adding tail and mask agnostic feature).
 
 ## Contributing
 
